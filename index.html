@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen Patrones — Burger Lab 🍔</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2129; --border:#30363d;
+    --text:#e6edf3; --muted:#8b949e; --accent:#f0883e; --accent2:#58a6ff;
+    --green:#3fb950; --red:#f85149; --yellow:#d29922; --purple:#bc8cff;
+    --code-bg:#0b0f14;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1.55;}
+  header{padding:24px 20px 12px; text-align:center; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#161b22,#0d1117);}
+  header h1{font-size:1.5rem;}
+  header p{color:var(--muted); font-size:.9rem; margin-top:4px;}
+  nav{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:14px 10px; position:sticky; top:0; background:rgba(13,17,23,.97); border-bottom:1px solid var(--border); z-index:10;}
+  nav button{background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:20px; padding:7px 14px; cursor:pointer; font-size:.85rem; transition:.15s;}
+  nav button:hover{border-color:var(--accent);}
+  nav button.active{background:var(--accent); color:#000; font-weight:700; border-color:var(--accent);}
+  main{max-width:980px; margin:0 auto; padding:24px 16px 80px;}
+  section.tab{display:none;}
+  section.tab.visible{display:block; animation:fade .25s;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1;}}
+
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:18px;}
+  .card h2{font-size:1.35rem; margin-bottom:2px;}
+  .card h3{font-size:1.02rem; margin:18px 0 8px; color:var(--accent); display:flex; align-items:center; gap:8px;}
+  .card h3:first-of-type{margin-top:10px;}
+  .tipo{display:inline-block; font-size:.72rem; font-weight:700; padding:2px 10px; border-radius:10px; margin:4px 0 6px; text-transform:uppercase; letter-spacing:.5px;}
+  .creacional{background:#1f3d2b; color:#56d364;}
+  .estructural{background:#1d2d4d; color:#79c0ff;}
+  .comportamiento{background:#3d2d1f; color:#f0883e;}
+  .extra{background:#32204d; color:#bc8cff;}
+  .intent{color:var(--muted); font-style:italic; margin-bottom:6px;}
+
+  table.files{width:100%; border-collapse:collapse; font-size:.86rem; margin:6px 0;}
+  table.files th, table.files td{border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top;}
+  table.files th{background:var(--panel2); color:var(--accent2);}
+  table.files code{color:var(--yellow);}
+  .rol{color:var(--muted); font-size:.8rem;}
+
+  pre.code{background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:14px; overflow-x:auto; font-size:.8rem; line-height:1.5; font-family:"SF Mono",Menlo,Consolas,monospace; margin:8px 0;}
+  .cfile{display:block; color:var(--muted); font-size:.72rem; margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;}
+  .kw{color:#ff7b72;} .str{color:#a5d6ff;} .com{color:#7c8794; font-style:italic;} .ann{color:#d2a8ff;} .num{color:#79c0ff;} .hl{background:#3d2d00; display:inline-block; width:100%; border-radius:3px;}
+
+  .why-box{background:var(--panel2); border-left:4px solid var(--green); border-radius:0 8px 8px 0; padding:12px 14px; margin:8px 0; font-size:.92rem;}
+  .vs{background:var(--panel2); border:1px solid var(--border); border-radius:8px; margin:8px 0; overflow:hidden;}
+  .vs-head{padding:10px 14px; font-weight:700; color:var(--accent2); font-size:.92rem;}
+  .vs-body{padding:0 14px 12px; font-size:.9rem; color:#c9d1d9;}
+  .vs-body b{color:var(--text);}
+
+  details.qa{background:var(--panel2); border:1px solid var(--border); border-radius:8px; margin:8px 0;}
+  details.qa summary{padding:11px 14px; cursor:pointer; font-weight:600; font-size:.92rem; list-style:none; position:relative; padding-right:34px;}
+  details.qa summary::after{content:"▾"; position:absolute; right:14px; color:var(--accent); transition:.2s;}
+  details.qa[open] summary::after{transform:rotate(180deg);}
+  details.qa summary:hover{color:var(--accent);}
+  details.qa .resp{padding:2px 14px 13px; font-size:.9rem; color:#c9d1d9; border-top:1px dashed var(--border); padding-top:10px;}
+  details.qa .resp b{color:var(--green);}
+  details.qa .resp code, .vs-body code, .why-box code, li code, p code, td code{background:var(--code-bg); padding:1px 6px; border-radius:4px; font-size:.82em; color:var(--yellow); font-family:"SF Mono",Menlo,Consolas,monospace;}
+  .trampa summary::before{content:"🪤 "; }
+
+  ul.clean{padding-left:20px; font-size:.92rem;}
+  ul.clean li{margin:5px 0;}
+
+  .elevator{background:linear-gradient(135deg,#1c2822,#161b22); border:1px solid #2ea04355; border-radius:8px; padding:12px 14px; margin-top:14px; font-size:.92rem;}
+  .elevator b{color:var(--green);}
+
+  /* QUIZ */
+  #quiz-box{max-width:760px; margin:0 auto;}
+  .q-progress{height:8px; background:var(--panel2); border-radius:4px; overflow:hidden; margin-bottom:16px;}
+  .q-progress div{height:100%; background:var(--accent); width:0; transition:.3s;}
+  .q-num{color:var(--muted); font-size:.85rem; margin-bottom:6px;}
+  .q-text{font-size:1.05rem; font-weight:700; margin-bottom:16px;}
+  .q-opt{display:block; width:100%; text-align:left; background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:12px 14px; margin:8px 0; cursor:pointer; font-size:.92rem; transition:.15s;}
+  .q-opt:hover:not(:disabled){border-color:var(--accent2); transform:translateX(3px);}
+  .q-opt.correct{background:#1f3d2b; border-color:var(--green);}
+  .q-opt.wrong{background:#3d1f1f; border-color:var(--red);}
+  .q-opt:disabled{cursor:default; opacity:.85;}
+  .q-explain{display:none; background:var(--panel2); border-left:4px solid var(--accent2); padding:12px 14px; border-radius:0 8px 8px 0; margin:12px 0; font-size:.9rem;}
+  .q-explain.show{display:block; animation:fade .3s;}
+  .q-next{background:var(--accent); color:#000; font-weight:700; border:none; border-radius:8px; padding:12px 26px; cursor:pointer; font-size:.95rem; margin-top:10px; display:none;}
+  .q-next.show{display:inline-block;}
+  .q-score{text-align:center; padding:30px 10px;}
+  .q-score .big{font-size:3rem; font-weight:800; color:var(--accent);}
+  .pill{display:inline-block; background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:3px 12px; font-size:.8rem; color:var(--muted); margin:3px;}
+  .btn{background:var(--accent); color:#000; font-weight:700; border:none; border-radius:8px; padding:12px 26px; cursor:pointer; font-size:.95rem;}
+  .note{color:var(--muted); font-size:.82rem; margin-top:8px;}
+  .flow{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:10px 0;}
+  .flow span{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:.8rem;}
+  .flow span b{color:var(--accent);}
+  .flow em{color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍔 Burger Lab — Preparación para el examen de Patrones</h1>
+  <p>6 patrones · archivos exactos · el método clave · por qué sí y por qué no otro · buenas prácticas · preguntas trampa del profe</p>
+</header>
+
+<nav id="nav">
+  <button data-tab="mapa" class="active">🗺️ Mapa</button>
+  <button data-tab="singleton">Singleton</button>
+  <button data-tab="factory">Factory Method</button>
+  <button data-tab="template">Template Method</button>
+  <button data-tab="composite">Composite</button>
+  <button data-tab="observer">Observer</button>
+  <button data-tab="bridge">Bridge</button>
+  <button data-tab="practicas">✅ Prácticas</button>
+  <button data-tab="trampas">🪤 Trampas</button>
+  <button data-tab="quiz">📝 Quiz</button>
+</nav>
+
+<main>
+
+<!-- ══════════════ MAPA ══════════════ -->
+<section class="tab visible" id="tab-mapa">
+  <div class="card">
+    <h2>🗺️ Mapa general del proyecto</h2>
+    <p class="intent">Dónde vive cada patrón y cómo cooperan en una sola corrida del sistema.</p>
+
+    <h3>Los 6 patrones y su ubicación principal (paquete <code>proyecto_final</code>)</h3>
+    <table class="files">
+      <tr><th>Patrón</th><th>Tipo</th><th>Clases clave</th><th>Método que lo define</th></tr>
+      <tr><td><b>Singleton</b></td><td>Creacional (GoF)</td><td><code>SistemaHamburgueseria</code></td><td><code>getInstancia()</code> + constructor privado</td></tr>
+      <tr><td><b>Factory Method</b></td><td>Creacional (GoF)</td><td><code>FactoryAlimento</code> + 4 fábricas</td><td><code>crearAlimento(Inventario)</code></td></tr>
+      <tr><td><b>Template Method</b></td><td>Comportamiento (GoF)</td><td><code>AlimentoAbstracto</code></td><td><code>preparar()</code> (el esqueleto)</td></tr>
+      <tr><td><b>Composite</b></td><td>Estructural (GoF)</td><td><code>Alimento</code>, <code>Pedido</code></td><td><code>agregarAlimento()</code> + el for de <code>preparar()</code></td></tr>
+      <tr><td><b>Observer</b></td><td>Comportamiento (GoF)</td><td><code>ObservadorPedido</code>, <code>Pedido</code></td><td><code>cambiarEstado()</code> → <code>notificarObservadores()</code></td></tr>
+      <tr><td><b>Bridge</b></td><td>Estructural (GoF)</td><td><code>PedidoAbstracto</code> ↔ <code>MetodoPago</code></td><td><code>procesarPago()</code> que delega en <code>pagar()</code></td></tr>
+    </table>
+    <p class="note">Nota: <code>SistemaHamburgueseria</code> también actúa como coordinador central del negocio, y <code>PagoNoSeleccionado</code> es un método de pago "neutro" que evita nulls — pero el examen se centra en los 6 patrones de arriba.</p>
+
+    <h3>Paquetes de demostración (ejercicios de clase, mismos patrones)</h3>
+    <table class="files">
+      <tr><th>Paquete</th><th>Patrones que demuestra</th></tr>
+      <tr><td><code>src/patrones/</code></td><td>Factory Method (<code>FactoryFigura</code> + fábricas de figuras) y Composite (<code>Compuesto</code> que pinta una lista de <code>Figura</code>)</td></tr>
+      <tr><td><code>src/patrones/bridge/</code></td><td>Bridge "de libro": <code>FiguraAbstracta</code> tiene un <code>Pincel</code>; figuras (Círculo, Estrella…) × pinceles de colores (<code>PincelSwingRojo</code>…)</td></tr>
+      <tr><td><code>src/patrones/observer/</code></td><td>Observer electoral: <code>Publicador</code> notifica <code>DataElectoral</code> a los <code>ObservadorElectoral</code></td></tr>
+      <tr><td><code>src/demopatrones/template/</code></td><td>Template Method con figuras (<code>FiguraAbstracta</code>: color + trazo + pintar)</td></tr>
+      <tr><td><code>src/demopatrones/templatefactory/</code></td><td>Template Method + Factory Method combinados</td></tr>
+      <tr><td><code>src/DATOS/</code></td><td>Estructuras de datos (pilas) — sin patrones GoF</td></tr>
+    </table>
+
+    <h3>Cómo cooperan en una corrida (<code>MainSistemaHamburgueseria.java</code>)</h3>
+    <div class="flow">
+      <span><b>1. Singleton</b><br><code>getInstancia()</code></span><em>→</em>
+      <span><b>2. Observer</b><br><code>registrarPedido()</code> suscribe Cocina, Despacho, Pantalla</span><em>→</em>
+      <span><b>3. Factory</b><br><code>crearAlimento()</code></span><em>→</em>
+      <span><b>4. Composite</b><br><code>agregarAlimento()</code></span><em>→</em>
+      <span><b>5. Template</b><br><code>preparar()</code> de cada alimento</span><em>→</em>
+      <span><b>6. Bridge</b><br><code>setMetodoPago()</code> + <code>procesarPago()</code></span>
+    </div>
+    <p class="note">Todo el recorrido pasa por <code>SistemaHamburgueseria</code>: la UI llama sus 4 operaciones (<code>registrarPedido</code>, <code>coordinarPreparacion</code>, <code>procesarPago</code>, <code>coordinarDespacho</code>) y él delega en el modelo.</p>
+
+    <div class="elevator"><b>Dato para presumir:</b> el dominio no tiene ni un solo <code>if</code>/<code>switch</code> para decidir tipos: todas las decisiones se resuelven con polimorfismo (fábricas, métodos de pago, observadores). Eso es exactamente lo que los patrones prometen.</div>
+  </div>
+</section>
+
+<!-- ══════════════ SINGLETON ══════════════ -->
+<section class="tab" id="tab-singleton">
+  <div class="card">
+    <h2>Singleton</h2>
+    <span class="tipo creacional">Creacional · GoF</span>
+    <p class="intent">Garantizar que una clase tenga UNA sola instancia y dar un punto de acceso global a ella.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol</th></tr>
+      <tr><td><code>proyecto_final/SistemaHamburgueseria.java</code></td><td class="rol">La clase Singleton (líneas 11–24: holder + constructor privado + getInstancia)</td></tr>
+      <tr><td><code>proyecto_final/MainSistemaHamburgueseria.java</code></td><td class="rol">Demostración: <code>sistema1 == sistema2</code> imprime <code>true</code> (líneas 11–17)</td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Singleton</h3>
+    <pre class="code"><span class="cfile">SistemaHamburgueseria.java (líneas 11–24)</span>// Holder idiom: la instancia se crea al solicitarla por primera vez.
+private static class ContenedorInstancia {
+    private static final SistemaHamburgueseria INSTANCIA = new SistemaHamburgueseria();
+}
+
+// Constructor privado: otras clases no pueden crear mas sistemas.
+private SistemaHamburgueseria() {
+    inventario = new Inventario();
+}
+
+public static SistemaHamburgueseria getInstancia() {
+    // Siempre devuelve exactamente el mismo objeto.
+    return ContenedorInstancia.INSTANCIA;
+}</pre>
+    <div class="why-box">Son <b>3 piezas juntas</b> las que forman el patrón: ① constructor <code>private</code> (nadie más puede hacer <code>new</code>), ② campo estático con la única instancia, ③ método público estático <code>getInstancia()</code> como único punto de acceso. Si falta cualquiera de las tres, ya no es Singleton.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>El <code>Inventario</code> (stock de pan, carne, queso…) debe ser <b>uno solo</b> para toda la aplicación. Si cada pantalla o cada pedido creara su propio <code>SistemaHamburgueseria</code>, cada uno tendría su propio inventario y los descuentos de stock no se verían entre sí: venderíamos hamburguesas con stock fantasma.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma</h3>
+    <div class="vs"><div class="vs-head">¿Por qué "holder idiom" y no el Singleton clásico con if?</div><div class="vs-body">El clásico hace <code>if (instancia == null) instancia = new ...</code> — ese <code>if</code> <b>no es thread-safe</b> (dos hilos pueden entrar a la vez y crear dos instancias) y además el proyecto evita condicionales. El holder usa una <b>clase interna estática</b>: la JVM garantiza que una clase se inicializa una sola vez y de forma segura entre hilos, recién cuando alguien la usa por primera vez. Resultado: <b>lazy + thread-safe + sin synchronized + sin if</b>.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no una clase con métodos static y ya?</div><div class="vs-body">Una clase estática no puede implementar interfaces, no se puede pasar como parámetro, no se puede heredar y no permite inicialización perezosa controlada. El Singleton sigue siendo un <b>objeto</b>: aquí se pasa a otros métodos y mantiene estado (<code>inventario</code>).</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no eager (crear la instancia al cargar la clase)?</div><div class="vs-body">Funcionaría, pero el holder ya da lo mismo y mejor: la instancia se crea <b>solo si alguien la pide</b>. Con eager, cargas el inventario aunque nunca se use.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa"><summary>¿Qué pasa si dos hilos llaman a getInstancia() exactamente al mismo tiempo?</summary><div class="resp">Nada malo: la <b>JVM garantiza que la inicialización de la clase <code>ContenedorInstancia</code> ocurre una sola vez</b> (el class loader se sincroniza internamente). Ambos hilos reciben la misma <code>INSTANCIA</code>. Por eso no necesitamos <code>synchronized</code> ni double-checked locking.</div></details>
+    <details class="qa"><summary>¿Por qué la clase interna es static? ¿Qué pasaría si no lo fuera?</summary><div class="resp">Si no fuera <code>static</code>, necesitaría una instancia de <code>SistemaHamburgueseria</code> para existir — círculo imposible, no compilaría en este uso. Además, siendo estática, <b>solo se carga cuando <code>getInstancia()</code> la toca por primera vez</b>: eso es lo que hace lazy al patrón.</div></details>
+    <details class="qa"><summary>Señale la línea exacta que impide crear dos sistemas.</summary><div class="resp">Línea 17: <code>private SistemaHamburgueseria()</code>. Al ser privado el constructor, <code>new SistemaHamburgueseria()</code> desde otra clase <b>no compila</b>.</div></details>
+    <details class="qa"><summary>¿Cómo demuestran en código que es una sola instancia?</summary><div class="resp">En <code>MainSistemaHamburgueseria</code> líneas 11–17: se piden dos referencias y se compara con <code>==</code> (identidad, no equals): <code>sistema1 == sistema2</code> imprime <b>true</b> → son el mismo objeto en memoria.</div></details>
+    <details class="qa"><summary>¿Qué crítica se le hace al Singleton y cómo la defienden?</summary><div class="resp">Se le critica ser un "global encubierto" que dificulta los tests. Defensa: aquí el alcance es pequeño y la alternativa (pasar el inventario por todos los constructores de la UI) complicaría más; además el acceso queda <b>centralizado y controlado</b> en una sola clase coordinadora, no regado por el código.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "SistemaHamburgueseria es Singleton con holder idiom: constructor privado, clase interna estática con la única instancia y getInstancia() como acceso. Lo usamos porque el inventario debe ser uno solo para toda la app, y el holder nos da lazy y thread-safe sin synchronized y sin if."</div>
+  </div>
+</section>
+
+<!-- ══════════════ FACTORY ══════════════ -->
+<section class="tab" id="tab-factory">
+  <div class="card">
+    <h2>Factory Method</h2>
+    <span class="tipo creacional">Creacional · GoF</span>
+    <p class="intent">Definir una interfaz para crear objetos, dejando que cada fábrica concreta decida qué clase instanciar.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
+      <tr><td><code>proyecto_final/FactoryAlimento.java</code></td><td class="rol">Creator (interfaz): declara <code>crearAlimento(Inventario)</code></td></tr>
+      <tr><td><code>proyecto_final/FactoryHamburguesa.java</code><br><code>FactoryPapasFritas.java</code> · <code>FactoryHelado.java</code> · <code>FactoryRefresco.java</code></td><td class="rol">Concrete Creators: cada una instancia SU producto</td></tr>
+      <tr><td><code>proyecto_final/Alimento.java</code></td><td class="rol">Product (interfaz que devuelve la fábrica)</td></tr>
+      <tr><td><code>Hamburguesa/PapasFritas/Helado/Refresco.java</code></td><td class="rol">Concrete Products</td></tr>
+      <tr><td><code>src/patrones/FactoryFigura.java</code> y <code>demopatrones/templatefactory/</code></td><td class="rol">Demos del mismo patrón con figuras</td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Factory Method</h3>
+    <pre class="code"><span class="cfile">FactoryAlimento.java</span>public interface FactoryAlimento {
+    // Devuelve Alimento para que el cliente no dependa de una clase concreta.
+    public Alimento crearAlimento(Inventario inventario);
+}</pre>
+    <pre class="code"><span class="cfile">FactoryHamburguesa.java (líneas 6–11)</span>@Override
+public Alimento crearAlimento(Inventario inventario) {
+    // El cliente recibe la interfaz Alimento, no necesita conocer mas detalles.
+    Hamburguesa h = new Hamburguesa(inventario);
+    return h;
+}</pre>
+    <div class="why-box">El método fábrica es <code>crearAlimento()</code>. La clave está en la <b>firma</b>: recibe el inventario, devuelve la <b>interfaz</b> <code>Alimento</code> — pero por dentro decide la clase concreta. El único <code>new Hamburguesa(...)</code> de todo el sistema vive aquí.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>La UI y el main pueden pedir "un alimento" <b>sin saber qué clase concreta se construye ni cómo</b>. Para agregar un producto nuevo (ej. Ensalada) solo se crean 2 clases nuevas (<code>Ensalada</code> + <code>FactoryEnsalada</code>) y <b>no se toca ni una línea del código existente</b> → principio Open/Closed.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma</h3>
+    <div class="vs"><div class="vs-head">¿Por qué no Abstract Factory?</div><div class="vs-body">Abstract Factory crea <b>familias de productos relacionados</b> (ej. "combo italiano" = pizza + pasta + vino, vs "combo peruano"). Aquí cada fábrica crea <b>UN solo producto independiente</b> — es exactamente Factory Method. Usar Abstract Factory sería sobre-ingeniería: no hay familias.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no una fábrica única con switch(tipo)?</div><div class="vs-body">Un <code>switch("hamburguesa") → new Hamburguesa()</code> funciona, pero cada producto nuevo obliga a <b>modificar</b> ese switch (viola Open/Closed) y concentra todas las dependencias en una clase. Con una fábrica por producto, la decisión la toma el <b>polimorfismo</b>: cero condicionales, cada botón de la UI instancia directamente su fábrica.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no Builder?</div><div class="vs-body">Builder es para construcción <b>compleja paso a paso</b> del MISMO objeto (una hamburguesa armada ingrediente por ingrediente con combinaciones opcionales). Aquí los productos se crean de un solo golpe con datos fijos: no hay pasos opcionales que justifiquen un Builder.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no Prototype?</div><div class="vs-body">Prototype clona instancias existentes cuando crear desde cero es caro. Crear una <code>Hamburguesa</code> es barato y cada una necesita el inventario actual — clonar no aporta nada.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa"><summary>¿Por qué crearAlimento() devuelve Alimento y no Hamburguesa?</summary><div class="resp"><b>Programar contra la interfaz, no la implementación</b> (principio de inversión de dependencias). Si devolviera <code>Hamburguesa</code>, el cliente quedaría acoplado a la clase concreta y el patrón perdería su gracia: no podrías tratar todos los productos igual ni agregarlos al pedido de forma uniforme.</div></details>
+    <details class="qa"><summary>¿Por qué la fábrica recibe el Inventario como parámetro?</summary><div class="resp">Es <b>inyección de dependencia</b>: el producto necesita el inventario para descontar ingredientes en <code>comprobarIngredientes()</code>. La fábrica se lo entrega en el constructor (<code>new Hamburguesa(inventario)</code>), así el producto nace listo y no tiene que buscar el inventario por su cuenta.</div></details>
+    <details class="qa"><summary>Entonces… ¿dónde se decide QUÉ fábrica usar? ¿No hay un if escondido?</summary><div class="resp">La decisión la toma <b>el usuario al hacer clic</b>: cada botón de la interfaz (o cada línea del main) instancia directamente su fábrica concreta (<code>new FactoryHamburguesa()</code>). No hay if/switch: la selección física del botón reemplaza al condicional.</div></details>
+    <details class="qa"><summary>¿Cuántos 'new Hamburguesa' hay en el sistema y por qué importa?</summary><div class="resp"><b>Uno solo</b>, dentro de <code>FactoryHamburguesa.crearAlimento()</code>. Importa porque el punto de creación está centralizado: si mañana la hamburguesa necesita otro parámetro, se cambia en UN lugar.</div></details>
+    <details class="qa"><summary>¿Qué principio SOLID demuestra este patrón aquí?</summary><div class="resp"><b>Open/Closed</b>: abierto a extensión (nuevas fábricas y productos), cerrado a modificación (el código cliente no se toca). También <b>DIP</b>: el cliente depende de las abstracciones <code>FactoryAlimento</code> y <code>Alimento</code>, no de clases concretas.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "FactoryAlimento es la interfaz con el método fábrica crearAlimento(); hay una fábrica concreta por producto. El cliente recibe la interfaz Alimento y nunca hace new de un producto. Así agregamos productos sin modificar código existente y sin condicionales."</div>
+  </div>
+</section>
+
+<!-- ══════════════ TEMPLATE ══════════════ -->
+<section class="tab" id="tab-template">
+  <div class="card">
+    <h2>Template Method</h2>
+    <span class="tipo comportamiento">Comportamiento · GoF</span>
+    <p class="intent">Definir en una clase base el esqueleto de un algoritmo, dejando pasos específicos a las subclases sin que puedan cambiar el orden.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
+      <tr><td><code>proyecto_final/AlimentoAbstracto.java</code></td><td class="rol">Clase abstracta: el método plantilla <code>preparar()</code> (líneas 21–28)</td></tr>
+      <tr><td><code>Hamburguesa/PapasFritas/Helado/Refresco.java</code></td><td class="rol">Subclases: implementan los pasos abstractos</td></tr>
+      <tr><td><code>src/demopatrones/template/FiguraAbstracta.java</code></td><td class="rol">Demo del mismo patrón con figuras (color, trazo, pintar)</td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Template Method</h3>
+    <pre class="code"><span class="cfile">AlimentoAbstracto.java (líneas 21–46)</span>// Metodo plantilla: el orden de estos pasos es igual para todos los productos.
+public void preparar() {
+    System.out.println("Preparando: " + nombre);
+    comprobarIngredientes();   // ← paso abstracto (varía)
+    prepararIngredientes();    // ← paso abstracto (varía)
+    cocinar();                 // ← paso abstracto (varía)
+    empacar();                 // ← paso común (fijo)
+    entregar();                // ← paso común (fijo)
+}
+
+public abstract void comprobarIngredientes();
+public abstract void prepararIngredientes();
+public abstract void cocinar();
+
+public void empacar()  { System.out.println("Se empaca " + nombre); }
+public void entregar() { System.out.println("Se entrega " + nombre); }</pre>
+    <div class="why-box">El patrón <b>ES</b> el método <code>preparar()</code>: fija el <b>orden invariable</b> (comprobar → preparar → cocinar → empacar → entregar) y mezcla pasos <code>abstract</code> (cada producto los rellena) con pasos concretos reutilizados. La Hamburguesa cocina carne; el Helado "no necesita cocinarse" — pero <b>nadie puede saltarse el orden</b>.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>Los 4 productos se preparan con la <b>misma secuencia</b> pero con detalles distintos. Sin el patrón, cada producto repetiría el flujo completo (código duplicado) o un método gigante tendría if por tipo de producto. Con el patrón: el flujo se escribe UNA vez y cada producto solo aporta sus diferencias.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma</h3>
+    <div class="vs"><div class="vs-head">¿Por qué no Strategy? (LA pregunta clásica)</div><div class="vs-body">Ambos varían comportamiento, pero: <b>Template Method usa herencia y varía PASOS dentro de un orden fijo</b> definido por la superclase; <b>Strategy usa composición y reemplaza el algoritmo COMPLETO</b>, pudiendo cambiarlo en tiempo de ejecución. Aquí el orden de preparación jamás cambia y un producto no cambia su forma de prepararse a mitad de la vida — herencia con esqueleto fijo es lo natural. (En cambio, el pago SÍ se cambia en runtime: por eso ese lado usa composición.)</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no un método con if por producto?</div><div class="vs-body"><code>if (tipo == "helado") no cocinar...</code> concentra todos los casos en un solo método que crece con cada producto y viola Open/Closed. Con Template, agregar un producto = una subclase nueva; el esqueleto no se toca.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa trampa"><summary>Hay DOS métodos preparar() en el proyecto. ¿Son el mismo patrón?</summary><div class="resp"><b>No, y esta es la trampa favorita.</b> ① <code>AlimentoAbstracto.preparar()</code> es el <b>Template Method</b> (esqueleto con pasos). ② <code>Pedido.preparar()</code> viene de la interfaz <code>Alimento</code> y es la operación del <b>Composite</b>: recorre la lista de alimentos hijos y llama al preparar() de cada uno. El mismo nombre, dos patrones distintos: uno define CÓMO se prepara un producto; el otro PROPAGA la orden a todos los hijos.</div></details>
+    <details class="qa"><summary>¿Qué pasos son abstractos y cuáles concretos? ¿Por qué esa división?</summary><div class="resp">Abstractos: <code>comprobarIngredientes()</code>, <code>prepararIngredientes()</code>, <code>cocinar()</code> — es lo que <b>cambia por producto</b>. Concretos: <code>empacar()</code> y <code>entregar()</code> — son <b>iguales para todos</b> y se reutilizan sin repetir código. La división refleja exactamente qué varía y qué no.</div></details>
+    <details class="qa trampa"><summary>¿Qué defecto tiene su preparar() según el patrón "de libro"?</summary><div class="resp">Debería ser <b><code>final</code></b>: tal como está, una subclase podría sobrescribir <code>preparar()</code> y romper el orden del esqueleto (que es justo lo que el patrón promete proteger). Respuesta honesta: "Es una mejora que identificamos: agregar <code>final</code> a la firma. Ninguna subclase lo sobrescribe, así que el comportamiento actual es correcto."</div></details>
+    <details class="qa"><summary>El Refresco no se cocina. ¿No rompe eso el patrón?</summary><div class="resp">No: <code>Refresco.cocinar()</code> se implementa imprimiendo "no necesita cocinarse" — el paso <b>existe y se ejecuta en su orden</b>, solo que su contenido es trivial. En la teoría esto se acerca a un <b>hook</b>: un paso que las subclases pueden llenar o dejar casi vacío.</div></details>
+    <details class="qa"><summary>¿Dónde más aparece Template Method en el proyecto?</summary><div class="resp">En <code>demopatrones/template/FiguraAbstracta.java</code> (demo de clase): pasos abstractos <code>obtenerColor()</code>, <code>obtenerTrazo()</code>, <code>pintarFigura()</code> con figuras como Círculo, Rectángulo y Hexágono. Y <code>demopatrones/templatefactory/</code> lo combina con Factory Method.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "AlimentoAbstracto.preparar() es el método plantilla: fija el orden comprobar→preparar→cocinar→empacar→entregar. Los tres primeros son abstractos y cada producto los implementa; los dos últimos son comunes. Elegimos Template y no Strategy porque el orden es fijo y varían pasos, no el algoritmo completo."</div>
+  </div>
+</section>
+
+<!-- ══════════════ COMPOSITE ══════════════ -->
+<section class="tab" id="tab-composite">
+  <div class="card">
+    <h2>Composite</h2>
+    <span class="tipo estructural">Estructural · GoF</span>
+    <p class="intent">Componer objetos en estructuras árbol y tratar igual a un objeto individual que a un grupo completo.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
+      <tr><td><code>proyecto_final/Alimento.java</code></td><td class="rol">Component: interfaz común (<code>preparar()</code>, <code>getNombre()</code>, <code>getPrecio()</code>)</td></tr>
+      <tr><td><code>proyecto_final/Pedido.java</code></td><td class="rol">Composite: tiene <code>List&lt;Alimento&gt;</code> y también ES un <code>Alimento</code></td></tr>
+      <tr><td><code>Hamburguesa/PapasFritas/Helado/Refresco.java</code></td><td class="rol">Leaf (hojas): productos individuales</td></tr>
+      <tr><td><code>src/patrones/Compuesto.java</code></td><td class="rol">Demo: un <code>Compuesto</code> pinta una lista de <code>Figura</code></td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Composite</h3>
+    <pre class="code"><span class="cfile">Pedido.java (líneas 10, 36–41, 61–77)</span>public abstract class Pedido extends PedidoAbstracto implements Alimento {
+
+    private List&lt;Alimento&gt; alimentos;   // hijos guardados por la INTERFAZ
+
+    public void agregarAlimento(Alimento alimento) {
+        alimentos.add(alimento);
+        monto += alimento.getPrecio();
+    }
+
+    @Override
+    public void preparar() {
+        cambiarEstado(EN_PREPARACION);
+        try {
+            // Composite: la misma operacion se aplica a todos los hijos.
+            for (Alimento alimento : alimentos) {
+                alimento.preparar();
+            }
+            cambiarEstado(LISTO);
+        } catch (StockInsuficienteException e) {
+            cambiarEstado(SIN_STOCK);
+        }
+    }
+}</pre>
+    <div class="why-box">Dos señales delatan al Composite: ① <code>Pedido</code> <b>implementa la misma interfaz que sus hijos</b> (<code>implements Alimento</code>) — un pedido "es un" alimento; ② <code>preparar()</code> del pedido <b>propaga la operación</b> a cada hijo con un for. El cliente llama <code>pedido.preparar()</code> igual que llamaría <code>hamburguesa.preparar()</code>: tratamiento uniforme.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>Un pedido agrupa varios productos, pero el sistema quiere tratarlo como una unidad: prepararlo, ponerle nombre, cobrarle un precio. Gracias al Composite, <code>SistemaHamburgueseria.coordinarPreparacion()</code> hace UNA llamada y no necesita saber cuántos productos hay dentro ni de qué tipo son.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma</h3>
+    <div class="vs"><div class="vs-head">¿Por qué no Decorator? (se parecen: ambos "envuelven")</div><div class="vs-body"><b>Decorator envuelve UN solo objeto para añadirle responsabilidades</b> (ej. HamburguesaConQuesoExtra que envuelve una Hamburguesa y suma 2 soles). <b>Composite agrega MUCHOS hijos para tratarlos como uno</b>. El Pedido no le añade comportamiento a una hamburguesa: la agrupa con otras. La lista <code>List&lt;Alimento&gt;</code> (muchos) vs una referencia única (uno) es la diferencia estructural visible.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no una simple lista en el cliente (sin patrón)?</div><div class="vs-body">Si la UI manejara una <code>List&lt;Alimento&gt;</code> a mano, cada operación (preparar, calcular total, mostrar) repetiría el bucle for en cada lugar donde se use. El Composite <b>encapsula el recorrido dentro del propio Pedido</b> y además permite que un pedido se use donde se espera un alimento.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa trampa"><summary>¿Un Pedido podría contener OTRO Pedido dentro?</summary><div class="resp"><b>Sí</b> — y esa es la prueba de fuego del Composite: como <code>Pedido implements Alimento</code> y <code>agregarAlimento()</code> recibe cualquier <code>Alimento</code>, un pedido puede ser hijo de otro (ej. un pedido corporativo que agrupa los pedidos de cada empleado). La estructura es recursiva (árbol). La UI actual no lo usa, pero el diseño lo permite sin cambiar una línea.</div></details>
+    <details class="qa"><summary>Identifique Component, Composite y Leaf con nombres de clases.</summary><div class="resp"><b>Component:</b> la interfaz <code>Alimento</code>. <b>Composite:</b> <code>Pedido</code> (y sus hijas PedidoMostrador/PedidoDelivery). <b>Leaf:</b> <code>Hamburguesa</code>, <code>PapasFritas</code>, <code>Helado</code>, <code>Refresco</code>.</div></details>
+    <details class="qa trampa"><summary>getPrecio() del Pedido devuelve 'monto'. ¿Eso es Composite puro?</summary><div class="resp">Confesión técnica: el Composite "de libro" haría <code>return alimentos.stream().sum(getPrecio)</code> — <b>recorrer los hijos</b>. Aquí se usa <code>monto</code>, un acumulador que se suma en <code>agregarAlimento()</code>. El resultado es el mismo, pero si alguien quitara un alimento de la lista sin ajustar el monto, se desincronizaría. Respuesta honesta: "Es una optimización con acumulador; la versión más pura sumaría los hijos al momento, y es una mejora identificada."</div></details>
+    <details class="qa"><summary>¿Dónde ejercita el sistema el tratamiento uniforme?</summary><div class="resp">En <code>Pedido.preparar()</code>: el for llama <code>alimento.preparar()</code> sin saber si el hijo es Hamburguesa o Helado — y también en <code>agregarAlimento()</code>, que suma <code>alimento.getPrecio()</code> por la interfaz. El demo <code>patrones/Compuesto.java</code> hace lo mismo con figuras: <code>pintar()</code> recorre y pinta cada una.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "Alimento es el Component, los productos son las hojas y Pedido es el Composite: implementa Alimento y guarda List&lt;Alimento&gt;. Su preparar() propaga la operación a cada hijo. Así el sistema trata a un pedido completo igual que a un producto individual."</div>
+  </div>
+</section>
+
+<!-- ══════════════ OBSERVER ══════════════ -->
+<section class="tab" id="tab-observer">
+  <div class="card">
+    <h2>Observer</h2>
+    <span class="tipo comportamiento">Comportamiento · GoF</span>
+    <p class="intent">Definir una dependencia uno-a-muchos: cuando un objeto cambia de estado, todos sus suscriptores son notificados automáticamente.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
+      <tr><td><code>proyecto_final/ObservadorPedido.java</code></td><td class="rol">Observer (interfaz): declara <code>notificar(Pedido)</code></td></tr>
+      <tr><td><code>proyecto_final/Pedido.java</code></td><td class="rol">Subject/Publicador: lista de observadores + <code>suscribir()</code> + <code>notificarObservadores()</code> (líneas 43–59)</td></tr>
+      <tr><td><code>Cocina.java</code> · <code>Despacho.java</code> · <code>PantallaCliente.java</code></td><td class="rol">Observers concretos</td></tr>
+      <tr><td><code>SistemaHamburgueseria.java</code> (líneas 36–44)</td><td class="rol">Aquí se SUSCRIBEN los observadores al crear el pedido</td></tr>
+      <tr><td><code>src/patrones/observer/</code></td><td class="rol">Demo electoral: <code>Publicador</code>, <code>ObservadorElectoral</code>, <code>DataElectoral</code></td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Observer</h3>
+    <pre class="code"><span class="cfile">Pedido.java (líneas 43–59)</span>public void suscribir(ObservadorPedido observador) {
+    observadores.add(observador);
+}
+
+public void notificarObservadores() {
+    // Todos reciben el mismo pedido sin conocer sus implementaciones concretas.
+    for (ObservadorPedido observador : observadores) {
+        observador.notificar(this);
+    }
+}
+
+public void cambiarEstado(String estado) {
+    this.estado = estado;
+    notificarObservadores();   // ← cada cambio se comunica automáticamente
+}</pre>
+    <pre class="code"><span class="cfile">SistemaHamburgueseria.java (líneas 36–41) — la suscripción</span>private Pedido configurarPedido(Pedido pedido, String tipoPedido) {
+    pedido.suscribir(new Cocina());
+    pedido.suscribir(new Despacho());
+    pedido.suscribir(new PantallaCliente());
+    pedido.cambiarEstado(Pedido.REGISTRADO);
+    return pedido;
+}</pre>
+    <div class="why-box">El disparador es <code>cambiarEstado()</code>: <b>cada</b> cambio de estado (REGISTRADO → EN_PREPARACION → LISTO/SIN_STOCK → ENTREGADO) llama a <code>notificarObservadores()</code>, que recorre la lista y avisa. El Pedido conoce a sus observadores <b>solo por la interfaz</b>: no sabe (ni le importa) si son cocinas o pantallas.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>Cocina, Despacho y la Pantalla del cliente necesitan enterarse del avance del pedido. Sin Observer, el Pedido tendría que llamar explícitamente a cada área (<code>cocina.avisar(); despacho.avisar();</code>…) quedando <b>acoplado</b> a todas; agregar un área nueva (ej. Contabilidad) obligaría a modificar Pedido. Con Observer: se crea la clase, se suscribe, y listo.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma</h3>
+    <div class="vs"><div class="vs-head">¿Por qué no que el sistema pregunte el estado cada cierto tiempo (polling)?</div><div class="vs-body">Con polling, cada área revisaría el pedido en bucle: procesamiento inútil y avisos tardíos. Con Observer, el aviso es <b>inmediato y solo cuando algo cambió</b> — el flujo de control se invierte: "no me llames, yo te llamo".</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no Mediator?</div><div class="vs-body">Mediator centraliza comunicación <b>bidireccional entre muchos colegas</b> que se hablan entre sí. Aquí la comunicación es <b>uno-a-muchos y en un solo sentido</b>: el pedido emite, los demás escuchan; Cocina jamás le habla a Despacho. Observer es el ajuste exacto.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no eventos de JavaFX directamente?</div><div class="vs-body">Los observadores son objetos <b>del dominio</b> (Cocina, Despacho), no widgets. Implementar el patrón a mano lo mantiene independiente de la tecnología de interfaz: funciona igual en el main de consola que en la app JavaFX.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa"><summary>¿Quién es el Subject y quién el Observer? Nómbrelos con precisión.</summary><div class="resp"><b>Subject (publicador):</b> <code>Pedido</code> — mantiene la lista, expone <code>suscribir()</code> y dispara <code>notificarObservadores()</code>. <b>Observer (interfaz):</b> <code>ObservadorPedido</code> con su único método <code>notificar(Pedido)</code>. <b>Observers concretos:</b> Cocina, Despacho, PantallaCliente.</div></details>
+    <details class="qa"><summary>¿En qué línea exacta se dispara la notificación?</summary><div class="resp"><code>Pedido.java</code> línea 58: dentro de <code>cambiarEstado()</code> se llama <code>notificarObservadores()</code>. Por eso <b>ningún cambio de estado puede pasar desapercibido</b>: el aviso está incrustado en el único método que cambia el estado.</div></details>
+    <details class="qa trampa"><summary>¿Su Observer es modelo push o pull?</summary><div class="resp">Híbrido con espíritu <b>pull</b>: se envía el objeto completo (<code>notificar(this)</code>) y cada observador <b>extrae lo que le interesa</b> (<code>pedido.getEstado()</code>, <code>getCliente()</code>…). Un push puro enviaría solo los datos exactos (ej. el string del estado). Ventaja del enfoque: si mañana un observador necesita otro dato del pedido, no cambia la interfaz.</div></details>
+    <details class="qa trampa"><summary>¿Qué le falta a su implementación respecto al patrón completo?</summary><div class="resp">El método <b><code>desuscribir()</code></b> (detach). GoF define attach/detach; aquí solo hay attach porque los observadores viven lo mismo que el pedido. Respuesta honesta: "Lo omitimos porque nuestros observadores nunca se dan de baja; agregarlo es trivial: <code>observadores.remove(obs)</code>."</div></details>
+    <details class="qa"><summary>¿Dónde se suscriben los observadores y por qué ahí?</summary><div class="resp">En <code>SistemaHamburgueseria.configurarPedido()</code> (líneas 36–44), inmediatamente al registrar el pedido y ANTES del primer <code>cambiarEstado(REGISTRADO)</code> — así ningún observador se pierde ni siquiera el primer estado. Lo cablea <code>SistemaHamburgueseria</code>, para que ni la UI ni el Pedido conozcan ese detalle.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "Pedido es el subject: guarda ObservadorPedido en una lista, y cambiarEstado() dispara notificar(this) a todos. Cocina, Despacho y PantallaCliente son los observadores, suscritos en SistemaHamburgueseria al registrar el pedido. Así el pedido avisa sin acoplarse a ningún área concreta."</div>
+  </div>
+</section>
+
+<!-- ══════════════ BRIDGE ══════════════ -->
+<section class="tab" id="tab-bridge">
+  <div class="card">
+    <h2>Bridge</h2>
+    <span class="tipo estructural">Estructural · GoF</span>
+    <p class="intent">Desacoplar una abstracción de su implementación para que ambas jerarquías evolucionen de forma independiente.</p>
+
+    <h3>📍 Dónde está</h3>
+    <table class="files">
+      <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
+      <tr><td><code>proyecto_final/PedidoAbstracto.java</code></td><td class="rol">Abstraction: guarda la referencia <code>metodoPago</code> (el "puente")</td></tr>
+      <tr><td><code>PedidoMostrador.java</code> · <code>PedidoDelivery.java</code></td><td class="rol">Refined Abstractions: cada tipo calcula su monto</td></tr>
+      <tr><td><code>proyecto_final/MetodoPago.java</code></td><td class="rol">Implementor (interfaz): <code>pagar(double)</code></td></tr>
+      <tr><td><code>PagoTarjeta.java</code> · <code>PagoYape.java</code> · <code>PagoEfectivo.java</code></td><td class="rol">Concrete Implementors</td></tr>
+      <tr><td><code>src/patrones/bridge/</code></td><td class="rol">Demo "de libro": <code>FiguraAbstracta</code> tiene un <code>Pincel</code>; figuras × pinceles de colores</td></tr>
+    </table>
+
+    <h3>🔑 El código que lo hace ser Bridge</h3>
+    <pre class="code"><span class="cfile">PedidoAbstracto.java (líneas 7–31, resumido)</span>public abstract class PedidoAbstracto {
+
+    protected MetodoPago metodoPago;   // ← EL PUENTE: composición, no herencia
+
+    public abstract void procesarPago();
+
+    public void setMetodoPago(MetodoPago metodoPago) {
+        // Permite cambiar la implementacion de pago en tiempo de ejecucion.
+        this.metodoPago = metodoPago;
+    }
+}</pre>
+    <pre class="code"><span class="cfile">PedidoDelivery.java (líneas 26–35)</span>@Override
+public void procesarPago() {
+    // Bridge: el tipo de pedido calcula el total y MetodoPago realiza el cobro.
+    metodoPago.pagar(getPrecio());
+}
+
+@Override
+public double getPrecio() {
+    return super.getPrecio() + costoEnvio;   // delivery agrega su envío
+}</pre>
+    <div class="why-box">El puente es el campo <code>protected MetodoPago metodoPago</code>. Hay <b>dos jerarquías independientes</b>: la de pedidos (Mostrador, Delivery) que decide <b>QUÉ monto</b> cobrar, y la de pagos (Tarjeta, Yape, Efectivo) que decide <b>CÓMO</b> cobrarlo. La línea del patrón: <code>metodoPago.pagar(getPrecio())</code> — la abstracción delega en la implementación.</div>
+
+    <h3>🎯 Qué problema resuelve aquí</h3>
+    <p>Sin Bridge, cada combinación necesitaría una clase: <code>PedidoMostradorTarjeta</code>, <code>PedidoDeliveryYape</code>… 2 tipos × 3 pagos = <b>6 clases</b> (y crecería multiplicando). Con Bridge: 2 + 3 = <b>5 clases</b> y cualquier combinación se arma en runtime con <code>setMetodoPago()</code>. Agregar PagoPlin = 1 clase nueva, cero modificaciones.</p>
+
+    <h3>⚔️ Por qué así y no de otra forma — incluye LA pregunta asesina</h3>
+    <div class="vs"><div class="vs-head">🔥 "Esto es Strategy, no Bridge" — ¿cómo lo defiendo?</div><div class="vs-body">Estructuralmente son casi idénticos (interfaz + composición + delegación), la diferencia es de <b>intención y de jerarquías</b>:<br><br>· <b>Strategy</b>: UN contexto intercambia algoritmos equivalentes. El foco es variar un comportamiento.<br>· <b>Bridge</b>: <b>DOS jerarquías completas</b> diseñadas para crecer por separado. El foco es la estructura: evitar la explosión combinatoria de clases.<br><br>Aquí hay jerarquía en AMBOS lados: pedidos (Mostrador/Delivery, cada uno con su cálculo de precio) y pagos (Tarjeta/Yape/Efectivo). Ambas crecen independientes → <b>Bridge</b>. Si solo existiera la clase Pedido con pagos intercambiables, sería Strategy. Remate honesto: "Bridge y Strategy comparten estructura; los distingue la intención — y la nuestra es desacoplar dos jerarquías que evolucionan solas. De hecho GoF lo dice: muchos patrones difieren solo en su propósito."</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no herencia pura (subclases por combinación)?</div><div class="vs-body">Explosión de clases: cada tipo de pedido nuevo multiplica por todos los pagos y viceversa (n×m). Además la combinación quedaría <b>fija en compilación</b>; con el puente, el cliente elige el pago con un clic <b>en runtime</b> (<code>setMetodoPago(new PagoYape(...))</code>).</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no un switch(tipoPago) dentro de Pedido?</div><div class="vs-body">Cada nuevo método de pago obligaría a modificar Pedido (viola Open/Closed) y Pedido acumularía la lógica de todos los pagos (viola responsabilidad única). Con Bridge, cada pago vive en su propia clase.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa"><summary>Señale la línea exacta donde "cruza el puente".</summary><div class="resp"><code>PedidoMostrador.java</code> línea 20 (y PedidoDelivery línea 29): <code>metodoPago.pagar(getPrecio())</code>. Ahí la abstracción (pedido) delega el trabajo a la implementación (pago) a través de la interfaz.</div></details>
+    <details class="qa"><summary>¿Qué aporta cada lado del puente? Demuestre que ambos varían.</summary><div class="resp"><b>Lado abstracción:</b> <code>PedidoDelivery.getPrecio()</code> suma <code>costoEnvio</code>; PedidoMostrador no. <b>Lado implementación:</b> PagoTarjeta imprime el número de tarjeta, PagoYape el celular, PagoEfectivo solo el monto. Dos ejes de variación reales e independientes: la definición de Bridge.</div></details>
+    <details class="qa"><summary>¿Dónde se cambia la implementación en tiempo de ejecución?</summary><div class="resp">En <code>PedidoAbstracto.setMetodoPago()</code> (líneas 28–31). En el main, línea 42: <code>pedido.setMetodoPago(new PagoTarjeta("123456789"))</code>. En la app JavaFX, al elegir el método de pago en pantalla.</div></details>
+    <details class="qa trampa"><summary>¿Por qué PedidoAbstracto es clase abstracta y MetodoPago es interfaz?</summary><div class="resp">La abstracción <b>comparte estado y código</b> entre sus hijas (el campo <code>metodoPago</code>, <code>monto</code>, los setters) → clase abstracta. El implementor solo define un <b>contrato de comportamiento</b> sin estado común (<code>pagar(monto)</code>) → interfaz. Es la forma canónica del Bridge en Java.</div></details>
+    <details class="qa"><summary>¿Hay otro Bridge en el proyecto?</summary><div class="resp">Sí, el demo de clase en <code>src/patrones/bridge/</code>: <code>FiguraAbstracta</code> (abstracción) guarda un <code>Pincel</code> (implementor). Figuras: Círculo, Cuadrado, Estrella, Pastel, Fuego, Vela; pinceles: <code>PincelSwingRojo/Azul/Amarillo/Rosa</code>. Cualquier figura se dibuja con cualquier color: n+m clases en vez de n×m.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "PedidoAbstracto es la abstracción y guarda la referencia MetodoPago: ese campo es el puente. PedidoMostrador y Delivery deciden el monto; Tarjeta, Yape y Efectivo deciden cómo cobrar. procesarPago() delega con metodoPago.pagar(getPrecio()). Dos jerarquías que crecen independientes y se combinan en runtime: eso es Bridge, no Strategy."</div>
+  </div>
+</section>
+
+<!-- ══════════════ PRACTICAS ══════════════ -->
+<section class="tab" id="tab-practicas">
+  <div class="card">
+    <h2>✅ Buenas prácticas del proyecto</h2>
+    <p class="intent">Además de los patrones, el proyecto aplica principios de diseño. El profe puede preguntar por ellos con nombre propio.</p>
+
+    <h3>⭐ Responsabilidad Única (SRP) — la estrella</h3>
+    <div class="why-box"><b>Qué significa:</b> es la "S" de SOLID (Robert C. Martin): <b>una clase debe tener UNA sola responsabilidad — una sola razón para cambiar</b>. Si puedes describir la clase sin usar "y" ("crea hamburguesas <i>y</i> cobra <i>y</i> maneja stock"), va bien; si necesitas el "y", la clase hace demasiado.</div>
+
+    <p style="margin:10px 0 6px;"><b>Dónde se cumple en el proyecto</b> — cada clase se describe en una sola frase sin "y":</p>
+    <table class="files">
+      <tr><th>Clase</th><th>Su ÚNICA responsabilidad</th></tr>
+      <tr><td><code>FactoryHamburguesa</code></td><td class="rol">Crear hamburguesas. Nada más.</td></tr>
+      <tr><td><code>PagoTarjeta</code> / <code>PagoYape</code> / <code>PagoEfectivo</code></td><td class="rol">Cada uno sabe cobrar de UNA forma</td></tr>
+      <tr><td><code>Inventario</code></td><td class="rol">Gestionar el stock de ingredientes (verificar, descontar, agregar)</td></tr>
+      <tr><td><code>Cocina</code> / <code>Despacho</code> / <code>PantallaCliente</code></td><td class="rol">Cada uno reacciona a los estados del pedido desde SU área</td></tr>
+      <tr><td><code>Pedido</code></td><td class="rol">Administrar su contenido y su ciclo de estados</td></tr>
+      <tr><td><code>SistemaHamburgueseria</code></td><td class="rol">Coordinar las operaciones del negocio (delega, no ejecuta)</td></tr>
+      <tr><td><code>StockInsuficienteException</code></td><td class="rol">Representar un único error del dominio</td></tr>
+    </table>
+
+    <div class="why-box"><b>Por qué se usó:</b> ① <b>cambios localizados</b> — si mañana Yape cambia su API, solo se toca <code>PagoYape</code>; cero riesgo de romper cocina o inventario. ② <b>clases cortas y legibles</b> — ninguna clase del dominio pasa de ~80 líneas. ③ <b>los patrones lo producen naturalmente</b>: Factory Method separa "crear" de "usar", Observer separa "avisar" de "reaccionar", Bridge separa "qué cobrar" de "cómo cobrar". Patrones y SRP se refuerzan mutuamente.</div>
+
+    <h3>🧰 Las demás buenas prácticas (con evidencia en el código)</h3>
+
+    <div class="vs"><div class="vs-head">Programar contra interfaces, no implementaciones (DIP)</div><div class="vs-body">El cliente solo conoce <code>Alimento</code>, <code>MetodoPago</code>, <code>FactoryAlimento</code> y <code>ObservadorPedido</code>. Las clases concretas se instancian en un único punto cada una. Evidencia: <code>crearAlimento()</code> devuelve <code>Alimento</code>, nunca <code>Hamburguesa</code>.</div></div>
+
+    <div class="vs"><div class="vs-head">Open/Closed: extender sin modificar</div><div class="vs-body">Producto nuevo = 2 clases nuevas (producto + fábrica); método de pago nuevo = 1 clase nueva; área observadora nueva = 1 clase + 1 <code>suscribir()</code>. En ningún caso se edita código existente.</div></div>
+
+    <div class="vs"><div class="vs-head">Cero if/switch de tipos: polimorfismo</div><div class="vs-body">El dominio no tiene condicionales para decidir tipos de producto, de pago ni de pedido — cada decisión vive en una clase polimórfica. Verificable con una búsqueda de <code>if</code>/<code>switch</code> en <code>proyecto_final</code>.</div></div>
+
+    <div class="vs"><div class="vs-head">Encapsulamiento defensivo</div><div class="vs-body"><code>Inventario.getIngredientes()</code> (línea 71) devuelve <code>Collections.unmodifiableMap(...)</code>: la UI puede LEER el stock pero no modificarlo por fuera; toda mutación pasa por los métodos del inventario. Además <code>descontarIngredientes()</code> (líneas 44–59) <b>valida todo antes de descontar</b>, para nunca dejar un descuento a medias.</div></div>
+    <pre class="code"><span class="cfile">Inventario.java (líneas 69–72)</span>public Map&lt;String, Integer&gt; getIngredientes() {
+    // Vista de solo lectura: la interfaz consulta, pero no modifica el mapa.
+    return Collections.unmodifiableMap(ingredientes);
+}</pre>
+
+    <div class="vs"><div class="vs-head">Excepción propia del dominio</div><div class="vs-body"><code>StockInsuficienteException</code> le pone nombre de negocio a un error de negocio. <code>Pedido.preparar()</code> la captura y la traduce a un estado (<code>SIN_STOCK</code>) que el Observer difunde — el error no revienta el programa, se convierte en información.</div></div>
+
+    <div class="vs"><div class="vs-head">Constantes con nombre en lugar de "strings mágicos"</div><div class="vs-body">Los estados viven UNA vez como constantes (<code>Pedido.REGISTRADO</code>, <code>EN_PREPARACION</code>, <code>LISTO</code>, <code>SIN_STOCK</code>, <code>ENTREGADO</code>, líneas 13–17). Un typo en un string suelto compila y falla en silencio; un typo en la constante no compila.</div></div>
+
+    <div class="vs"><div class="vs-head">Inyección de dependencias (manual)</div><div class="vs-body">Los productos no buscan el inventario: lo <b>reciben</b> por constructor (<code>new Hamburguesa(inventario)</code>, entregado por la fábrica). La dependencia es explícita y visible en la firma.</div></div>
+
+    <div class="vs"><div class="vs-head">Separación modelo ↔ vista</div><div class="vs-body">El mismo modelo sirve a dos vistas sin cambiar una línea: el main de consola (<code>MainSistemaHamburgueseria</code>) y la app JavaFX (<code>interfaz/AplicacionHamburgueseria</code>). Prueba de que la lógica no está mezclada con la interfaz.</div></div>
+
+    <h3>🎓 Preguntas rebuscadas</h3>
+    <details class="qa"><summary>¿Qué significa exactamente "una sola razón para cambiar"?</summary><div class="resp">Que solo UN tipo de requisito puede obligarte a editar esa clase. <code>PagoYape</code> solo cambia si cambia cómo se cobra por Yape; <code>Inventario</code> solo cambia si cambia la gestión de stock. Si una clase cambiara por dos motivos distintos (cobros Y stock), tendría dos responsabilidades mezcladas y cada cambio arriesgaría romper al otro.</div></details>
+    <details class="qa"><summary>Deme un ejemplo de clase que VIOLARÍA SRP en este proyecto.</summary><div class="resp">Un <code>GestorTodo</code> que cree productos, cobre y descuente stock: cambiar la lógica de pago podría romper la creación de productos. El proyecto lo evita repartiendo cada responsabilidad: fábricas crean, pagos cobran, inventario gestiona stock.</div></details>
+    <details class="qa trampa"><summary>¿SRP es lo mismo que "una clase por archivo" o "métodos cortos"?</summary><div class="resp"><b>No.</b> SRP habla de <b>motivos de cambio</b>, no de tamaño. Una clase de 300 líneas con una sola responsabilidad cumple SRP; una de 20 líneas que cobra Y registra stock lo viola. El tamaño pequeño es una <i>consecuencia</i> frecuente, no la definición.</div></details>
+    <details class="qa trampa"><summary>¿Los patrones garantizan SRP automáticamente?</summary><div class="resp">No lo garantizan, pero lo <b>empujan</b>: cada patrón fuerza una separación (crear/usar, avisar/reaccionar, qué/cómo). Aun así se puede violar SRP dentro de un patrón — por ejemplo, si una fábrica además cobrara. La disciplina la pone el diseñador; el patrón solo marca el molde.</div></details>
+    <details class="qa"><summary>¿Qué pasaría si getIngredientes() devolviera el mapa directamente?</summary><div class="resp">Cualquier clase podría hacer <code>getIngredientes().put("Carne", 999)</code> y corromper el stock saltándose la validación de <code>descontarIngredientes()</code>. El <code>unmodifiableMap</code> lanza excepción ante cualquier intento de escritura: la única puerta de mutación son los métodos del propio Inventario.</div></details>
+
+    <div class="elevator"><b>Respuesta de 20 segundos (SRP):</b> "Aplicamos Responsabilidad Única: cada clase tiene una sola razón para cambiar — cada fábrica solo crea su producto, cada pago solo sabe cobrar de una forma, el inventario solo gestiona stock y los observadores solo reaccionan desde su área. Lo usamos para que un cambio en una parte no arriesgue romper otra, y se nota: ninguna clase del dominio necesita un 'y' para describirse."</div>
+  </div>
+</section>
+
+<!-- ══════════════ TRAMPAS ══════════════ -->
+<section class="tab" id="tab-trampas">
+  <div class="card">
+    <h2>🪤 Las trampas favoritas del profe</h2>
+    <p class="intent">Preguntas cruzadas que mezclan patrones o atacan los puntos débiles. Piensa la respuesta ANTES de abrir cada una.</p>
+
+    <details class="qa trampa"><summary>"Hay dos preparar() distintos. ¿Cuál es de qué patrón?"</summary><div class="resp"><code>AlimentoAbstracto.preparar()</code> = <b>Template Method</b> (esqueleto de pasos de UN producto). <code>Pedido.preparar()</code> = operación del <b>Composite</b> (viene de la interfaz <code>Alimento</code>, recorre los hijos y llama al preparar de cada uno). El del pedido TERMINA invocando al del producto: los dos patrones cooperan en cadena.</div></details>
+
+    <details class="qa trampa"><summary>"Clasifíqueme sus 6 patrones por categoría GoF."</summary><div class="resp"><b>Creacionales:</b> Singleton y Factory Method. <b>Estructurales:</b> Composite y Bridge. <b>De comportamiento:</b> Template Method y Observer. Dos de cada categoría — saber la clasificación de memoria suma puntos fáciles.</div></details>
+
+    <details class="qa trampa"><summary>"Su Bridge me parece Strategy. Convénzame."</summary><div class="resp">1) Comparten estructura; los distingue la <b>intención</b>. 2) Aquí hay <b>dos jerarquías</b> que evolucionan solas: pedidos (Mostrador/Delivery con cálculos de precio propios) y pagos (Tarjeta/Yape/Efectivo). 3) El objetivo es estructural: evitar n×m clases combinadas (2+3 en vez de 2×3). 4) Si solo hubiera UNA clase Pedido cambiando de algoritmo de pago, ahí sí sería Strategy. Cierre: "GoF mismo señala que varios patrones difieren solo en el propósito."</div></details>
+
+    <details class="qa trampa"><summary>"¿Qué patrón elimina el if que ustedes NO escribieron?" (pregunta abstracta)</summary><div class="resp">Tres patrones matan tres ifs distintos: <b>Factory Method</b> mata el <code>switch(tipoProducto)</code>; <b>Bridge</b> mata el <code>switch(tipoPago)</code>; <b>Template Method</b> mata los <code>if (tipo == helado) no cocinar</code>. Bonus: el pago por defecto <code>PagoNoSeleccionado</code> mata el <code>if (metodoPago != null)</code>. El dominio quedó con cero condicionales de tipo — verificable con una búsqueda.</div></details>
+
+    <details class="qa trampa"><summary>"Deme el recorrido de UNA llamada: sistema.coordinarPreparacion(pedido). ¿Qué patrones se activan y en qué orden?"</summary><div class="resp">① La UI llama a <code>SistemaHamburgueseria</code>, que delega en <code>pedido.preparar()</code> → <b>Composite</b>. ② El pedido hace <code>cambiarEstado(EN_PREPARACION)</code> → <b>Observer</b> notifica a Cocina/Despacho/Pantalla. ③ El for llama <code>alimento.preparar()</code> de cada hijo → <b>Template Method</b> ejecuta sus 5 pasos. ④ <code>comprobarIngredientes()</code> descuenta del inventario compartido → que existe único gracias al <b>Singleton</b>. ⑤ Al terminar, <code>cambiarEstado(LISTO)</code> → Observer otra vez. Cuatro patrones en una sola llamada.</div></details>
+
+    <details class="qa trampa"><summary>"¿Qué pasa si no hay stock a mitad de un pedido?"</summary><div class="resp"><code>Inventario.descontarIngredientes()</code> <b>valida TODO antes de descontar</b> (primero stream de verificación, luego descuento) para no dejar descuentos a medias. Si falta algo lanza <code>StockInsuficienteException</code>; <code>Pedido.preparar()</code> la captura, cambia el estado a <code>SIN_STOCK</code> y el <b>Observer</b> avisa a todas las áreas. La excepción es checked-style propia del dominio.</div></details>
+
+    <details class="qa trampa"><summary>"Critique su propio código: ¿qué mejorarían?" (la trampa de humildad)</summary><div class="resp">Tener 3-4 respuestas honestas preparadas desarma la pregunta:<br>① <code>preparar()</code> del Template debería ser <b>final</b> para blindar el orden.<br>② Al Observer le falta <b>desuscribir()</b> (attach sin detach).<br>③ <code>Pedido.getPrecio()</code> usa un monto acumulado; el Composite puro sumaría los hijos en el momento.<br>④ El modelado simplifica ingredientes (el Refresco descuenta Coca Cola E Inca Kola a la vez).<br>Cerrar con: "Ninguna afecta el funcionamiento actual y las tenemos identificadas como mejoras."</div></details>
+
+    <details class="qa trampa"><summary>"¿Por qué Pedido EXTIENDE PedidoAbstracto pero IMPLEMENTA Alimento?"</summary><div class="resp">Porque juega en dos patrones a la vez: <b>hereda</b> de <code>PedidoAbstracto</code> para ser la abstracción del <b>Bridge</b> (recibe el campo metodoPago y el contrato procesarPago), e <b>implementa</b> <code>Alimento</code> para ser el composite del <b>Composite</b> (tratarse igual que un producto). Java no permite herencia múltiple de clases: la línea <code>class Pedido extends PedidoAbstracto implements Alimento</code> es literalmente el punto donde dos patrones se cruzan.</div></details>
+
+    <details class="qa trampa"><summary>"Muéstreme el patrón X en los ejercicios de clase, no en el proyecto."</summary><div class="resp">· <b>Factory Method</b>: <code>patrones/FactoryFigura</code> + FactoryCirculo/Cuadrado/Triangulo/Compuesto.<br>· <b>Composite</b>: <code>patrones/Compuesto</code> — pintar() recorre la lista de Figuras.<br>· <b>Bridge</b>: <code>patrones/bridge/</code> — FiguraAbstracta tiene un Pincel; PincelSwingRojo/Azul/Amarillo/Rosa.<br>· <b>Observer</b>: <code>patrones/observer/</code> — Publicador notifica DataElectoral (resultados ONPE) a observadores.<br>· <b>Template Method</b>: <code>demopatrones/template/FiguraAbstracta</code> — obtenerColor/obtenerTrazo/pintarFigura.<br>· <b>Template + Factory juntos</b>: <code>demopatrones/templatefactory/</code>.</div></details>
+
+    <details class="qa trampa"><summary>"¿Singleton no es considerado un antipatrón hoy en día?"</summary><div class="resp">Reconocer la crítica y acotarla: "Se le critica cuando se abusa de él como variable global o cuando esconde dependencias en cientos de clases. Aquí su alcance es mínimo — un solo punto de acceso al inventario compartido, usado desde una sola clase coordinadora — y el proyecto es una app de escritorio sin inyección de dependencias, donde es la solución proporcional al problema."</div></details>
+  </div>
+</section>
+
+<!-- ══════════════ QUIZ ══════════════ -->
+<section class="tab" id="tab-quiz">
+  <div class="card" id="quiz-box">
+    <h2>📝 Quiz estilo examen</h2>
+    <p class="intent">Preguntas al estilo rebuscado del profe. Se barajan en cada intento.</p>
+    <div id="quiz-start">
+      <p style="margin:14px 0;">28 preguntas sobre ubicación exacta, métodos clave, comparaciones entre patrones y trampas. ¿Listo?</p>
+      <button class="btn" onclick="startQuiz()">Empezar quiz</button>
+    </div>
+    <div id="quiz-game" style="display:none;">
+      <div class="q-progress"><div id="q-bar"></div></div>
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="q-opts"></div>
+      <div class="q-explain" id="q-explain"></div>
+      <button class="q-next" id="q-next" onclick="nextQ()">Siguiente →</button>
+    </div>
+    <div id="quiz-end" style="display:none;" class="q-score"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ───── tabs ───── */
+const nav = document.getElementById('nav');
+nav.addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  document.querySelectorAll('section.tab').forEach(s => s.classList.remove('visible'));
+  document.getElementById('tab-' + e.target.dataset.tab).classList.add('visible');
+  window.scrollTo({top:0});
+});
+
+/* ───── mini resaltador de sintaxis Java ───── */
+document.querySelectorAll('pre.code').forEach(pre => {
+  const file = pre.querySelector('.cfile');
+  const fileHTML = file ? file.outerHTML : '';
+  let txt = pre.textContent;
+  if (file) txt = txt.replace(file.textContent, '');
+  txt = txt.replace(/^\n/, '');
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Un solo pase: comentarios y strings ganan por orden de alternancia,
+  // asi ningun marcador temporal puede chocar con los numeros del codigo.
+  const html = esc(txt).replace(
+    /(\/\/[^\n]*)|("[^"]*")|(@\w+)|\b(public|private|protected|static|final|class|interface|extends|implements|abstract|new|return|void|double|int|String|boolean|this|super|for|try|catch|throw|if)\b|\b(\d+(?:\.\d+)?)\b/g,
+    (m, com, str, ann, kw, num) => {
+      if (com) return '<span class="com">'+com+'</span>';
+      if (str) return '<span class="str">'+str+'</span>';
+      if (ann) return '<span class="ann">'+ann+'</span>';
+      if (kw)  return '<span class="kw">'+kw+'</span>';
+      return '<span class="num">'+num+'</span>';
+    });
+  pre.innerHTML = fileHTML + html;
+});
+
+/* ───── quiz ───── */
+const QUESTIONS = [
+ {q:"¿Qué tres elementos juntos hacen que SistemaHamburgueseria sea Singleton?",
+  o:["Constructor privado + instancia estática única + getInstancia() público","Solo el método getInstancia()","Ser la única clase del paquete con métodos static","Tener un inventario privado"],
+  c:0, e:"Faltando cualquiera de las tres piezas deja de ser Singleton: sin constructor privado cualquiera hace new; sin el campo estático no hay instancia única; sin getInstancia() no hay acceso."},
+ {q:"¿Por qué el proyecto usa el 'holder idiom' en vez del Singleton clásico con if (instancia == null)?",
+  o:["Es lazy y thread-safe sin synchronized, y evita el condicional","Porque el if está prohibido en Java moderno","Para poder tener varias instancias si hace falta","Porque consume menos memoria RAM"],
+  c:0, e:"La JVM garantiza que la clase interna ContenedorInstancia se inicializa una sola vez y de forma segura entre hilos, recién al primer uso. El if clásico no es thread-safe."},
+ {q:"En MainSistemaHamburgueseria, ¿cómo se demuestra el Singleton?",
+  o:["Comparando dos referencias con == y obteniendo true","Llamando dos veces al constructor","Con un assert de JUnit","Imprimiendo el hashCode del inventario"],
+  c:0, e:"sistema1 == sistema2 compara identidad (mismo objeto en memoria), no igualdad lógica. Imprime true: ambas variables apuntan a la única instancia."},
+ {q:"¿Cuál es el 'método fábrica' del Factory Method del proyecto?",
+  o:["crearAlimento(Inventario) en FactoryAlimento","preparar() en AlimentoAbstracto","registrarPedido() en SistemaHamburgueseria","agregarAlimento() en Pedido"],
+  c:0, e:"crearAlimento() es el factory method: cada fábrica concreta lo implementa devolviendo la interfaz Alimento pero instanciando su clase concreta por dentro."},
+ {q:"¿Por qué crearAlimento() devuelve Alimento y no Hamburguesa?",
+  o:["Para que el cliente dependa de la abstracción y no de la clase concreta","Porque Java no permite devolver clases concretas","Para ahorrar memoria","Porque Hamburguesa es abstracta"],
+  c:0, e:"Programar contra la interfaz: el cliente trata todos los productos igual y agregar productos nuevos no lo afecta (Open/Closed + DIP)."},
+ {q:"¿Por qué NO se usó Abstract Factory en lugar de Factory Method?",
+  o:["Porque no hay familias de productos relacionados: cada fábrica crea un solo producto","Porque Abstract Factory es obsoleto","Porque Abstract Factory requiere frameworks","Porque son exactamente lo mismo"],
+  c:0, e:"Abstract Factory crea familias coherentes de varios productos (combo italiano vs combo peruano). Aquí cada fábrica produce UN alimento independiente: eso es Factory Method."},
+ {q:"¿Dónde se decide QUÉ fábrica concreta usar, si no hay ningún if/switch?",
+  o:["El cliente (botón de la UI o línea del main) instancia directamente la fábrica que corresponde","En un switch oculto dentro de FactoryAlimento","La JVM lo decide por reflexión","En un archivo de configuración"],
+  c:0, e:"La selección física del botón reemplaza al condicional: cada botón hace new FactoryHamburguesa(), new FactoryHelado(), etc. Polimorfismo puro, cero if."},
+ {q:"El método plantilla del Template Method es…",
+  o:["AlimentoAbstracto.preparar(): fija el orden comprobar→preparar→cocinar→empacar→entregar","Hamburguesa.cocinar()","Pedido.preparar()","AlimentoAbstracto.empacar()"],
+  c:0, e:"preparar() de AlimentoAbstracto es el esqueleto: llama a 3 pasos abstractos (que cada producto rellena) y 2 concretos comunes, siempre en el mismo orden."},
+ {q:"🪤 Pedido.preparar() y AlimentoAbstracto.preparar() se llaman igual. ¿Qué patrón representa CADA uno?",
+  o:["Pedido: Composite (recorre hijos) / AlimentoAbstracto: Template Method (esqueleto de pasos)","Ambos son Template Method","Ambos son Composite","Pedido: Template / AlimentoAbstracto: Composite"],
+  c:0, e:"La trampa clásica del proyecto. El del Pedido viene de la interfaz Alimento y propaga la orden a los hijos (Composite); el de AlimentoAbstracto define los pasos de un producto (Template). Cooperan en cadena."},
+ {q:"¿Qué defecto 'de libro' tiene preparar() en AlimentoAbstracto?",
+  o:["No es final: una subclase podría sobrescribirlo y romper el orden del esqueleto","Debería ser private","Debería ser static","Tiene demasiados parámetros"],
+  c:0, e:"El patrón recomienda declarar final el método plantilla para blindar el orden. Ninguna subclase lo sobrescribe hoy, así que funciona — pero es la mejora honesta que hay que reconocer si preguntan."},
+ {q:"¿Por qué Template Method y no Strategy para la preparación?",
+  o:["El orden es fijo y solo varían pasos: herencia con esqueleto; Strategy cambiaría el algoritmo completo por composición","Strategy no existe en Java","Porque Strategy necesita interfaces y el proyecto no usa","Son intercambiables sin diferencia"],
+  c:0, e:"Template varía PASOS dentro de un orden inmutable (herencia); Strategy reemplaza TODO el algoritmo y permite cambiarlo en runtime (composición). La preparación nunca cambia de orden ni en runtime."},
+ {q:"En el Composite, ¿qué clase cumple cada rol?",
+  o:["Component: Alimento / Composite: Pedido / Hojas: Hamburguesa, PapasFritas, Helado, Refresco","Component: Pedido / Composite: Alimento / Hojas: las fábricas","Component: AlimentoAbstracto / Composite: Inventario / Hojas: los pagos","Component: SistemaHamburgueseria / Composite: Pedido / Hojas: observadores"],
+  c:0, e:"Alimento es la interfaz común; Pedido implementa Alimento Y contiene List<Alimento> (por eso es el composite); los productos son las hojas."},
+ {q:"¿Qué prueba estructural permite que un Pedido contenga OTRO Pedido?",
+  o:["Pedido implementa Alimento y agregarAlimento() acepta cualquier Alimento","Un método especial agregarPedido()","Herencia entre PedidoMostrador y PedidoDelivery","No es posible en el diseño actual"],
+  c:0, e:"Como el composite implementa la interfaz de sus hijos, la estructura es recursiva (árbol). La UI no lo explota, pero el diseño lo permite sin tocar código: esa es la esencia del Composite."},
+ {q:"¿Por qué Pedido NO es un Decorator aunque 'envuelve' alimentos?",
+  o:["Decorator envuelve UN objeto para añadirle responsabilidades; Composite agrupa MUCHOS hijos para tratarlos como uno","Porque Decorator es creacional","Porque Decorator no existe en Java","Sí es un Decorator"],
+  c:0, e:"La señal visible: Pedido tiene List<Alimento> (muchos hijos), no una única referencia envuelta. No añade comportamiento a una hamburguesa: agrupa varias."},
+ {q:"¿Qué método de Pedido dispara SIEMPRE la notificación a los observadores?",
+  o:["cambiarEstado(): asigna el estado y llama notificarObservadores()","suscribir()","getEstado()","entregarPedido() directamente"],
+  c:0, e:"La notificación está incrustada en el ÚNICO método que cambia el estado (línea 58): por diseño, ningún cambio puede pasar sin aviso. entregarPedido() también notifica, pero a través de cambiarEstado()."},
+ {q:"¿Dónde y cuándo se suscriben Cocina, Despacho y PantallaCliente?",
+  o:["En SistemaHamburgueseria.configurarPedido(), al registrar el pedido y antes del primer cambio de estado","En el constructor de Pedido","En el main, después de preparar","Se suscriben solos con reflexión"],
+  c:0, e:"SistemaHamburgueseria cablea los 3 observadores apenas crea el pedido, ANTES de cambiarEstado(REGISTRADO): así no se pierden ni la primera notificación."},
+ {q:"🪤 ¿El Observer del proyecto es push o pull?",
+  o:["Espíritu pull: se envía el pedido entero (this) y cada observador extrae lo que necesita","Push puro: se envía solo el string del estado","Ninguno, usa polling","Push por UDP"],
+  c:0, e:"notificar(this) entrega el objeto completo; cada observador hace pedido.getEstado() o lo que le interese. Ventaja: nuevos datos no obligan a cambiar la interfaz."},
+ {q:"¿Qué método del patrón Observer 'de libro' falta en la implementación?",
+  o:["desuscribir() (detach)","suscribir() (attach)","notificar()","getEstado()"],
+  c:0, e:"GoF define attach y detach. Aquí solo hay suscribir() porque los observadores viven tanto como el pedido. Respuesta honesta lista: agregarlo es una línea con observadores.remove(obs)."},
+ {q:"En el Bridge, ¿cuál es exactamente 'el puente'?",
+  o:["El campo protected MetodoPago metodoPago dentro de PedidoAbstracto","La clase PedidoDelivery","El método getPrecio()","La herencia entre Pedido y PedidoAbstracto"],
+  c:0, e:"El puente es la REFERENCIA de la abstracción hacia la interfaz del implementor: composición en lugar de herencia. procesarPago() delega a través de ese campo."},
+ {q:"¿Qué línea 'cruza el puente'?",
+  o:["metodoPago.pagar(getPrecio()) en procesarPago() de PedidoMostrador/PedidoDelivery","new PagoTarjeta() en el main","pedido.suscribir(new Cocina())","inventario.descontarIngredientes(...)"],
+  c:0, e:"La abstracción (pedido) calcula QUÉ monto con getPrecio() y delega el CÓMO cobrar a la implementación (MetodoPago). Esa llamada es el patrón en una línea."},
+ {q:"🪤 '¿Esto no es Strategy?' — la mejor defensa de que es Bridge:",
+  o:["Hay DOS jerarquías que evolucionan por separado (tipos de pedido × formas de pago) y el objetivo es evitar la explosión n×m de clases","Strategy no permite interfaces","Bridge es más moderno que Strategy","El profesor no distingue la diferencia"],
+  c:0, e:"Comparten estructura; los separa la intención. PedidoMostrador/Delivery varían el monto; Tarjeta/Yape/Efectivo varían el cobro. 2+3 clases en vez de 2×3 combinadas: intención estructural = Bridge."},
+ {q:"Sin Bridge, ¿cuántas clases exigirían 2 tipos de pedido × 3 métodos de pago con herencia pura?",
+  o:["6 clases combinadas (y creciendo multiplicativamente)","5 clases","2 clases","Una sola clase con switch"],
+  c:0, e:"PedidoMostradorTarjeta, PedidoMostradorYape, PedidoMostradorEfectivo, PedidoDeliveryTarjeta… = n×m. Con Bridge: n+m=5, y las combinaciones se arman en runtime con setMetodoPago()."},
+ {q:"sistema.coordinarPreparacion(pedido): ¿qué secuencia de patrones se activa?",
+  o:["Composite (recorre hijos) → Observer (estados) → Template Method (pasos de cada producto) → Singleton (inventario compartido)","Solo Template Method","Bridge → Factory → Singleton","Observer → Bridge → Factory"],
+  c:0, e:"Una sola llamada encadena 4 patrones: el composite propaga la orden a los hijos, el observer notifica los cambios de estado, el template ejecuta los pasos de cada producto y el inventario único (singleton) descuenta el stock."},
+ {q:"Según el principio de Responsabilidad Única (SRP), una clase debe…",
+  o:["Tener una sola razón para cambiar: encargarse de una única tarea del sistema","Tener un solo método público","Estar sola en su archivo .java","Tener menos de 50 líneas"],
+  c:0, e:"SRP (la S de SOLID) habla de MOTIVOS DE CAMBIO, no de tamaño ni de cantidad de métodos: si dos tipos de requisitos distintos obligan a editar la misma clase, tiene dos responsabilidades mezcladas."},
+ {q:"¿Cuál de estas clases del proyecto ejemplifica mejor SRP?",
+  o:["PagoYape: su única responsabilidad es cobrar por Yape; un cambio ahí no toca ninguna otra clase","Una clase GestorTodo que crea productos, cobra y descuenta stock","Un main que contiene toda la lógica","Una clase con todos los métodos static del sistema"],
+  c:0, e:"Cada pago, cada fábrica y cada observador tienen UNA responsabilidad. GestorTodo sería la violación típica: cambiar el cobro arriesgaría romper la creación de productos."},
+ {q:"Inventario.getIngredientes() devuelve Collections.unmodifiableMap. ¿Qué buena práctica es?",
+  o:["Encapsulamiento defensivo: se puede consultar el stock pero solo el Inventario puede modificarlo","Optimización de memoria","Es un requisito de JavaFX","Patrón Prototype"],
+  c:0, e:"Si devolviera el mapa real, cualquier clase podría hacer put() y corromper el stock saltándose la validación de descontarIngredientes(). La vista de solo lectura obliga a mutar únicamente por los métodos del Inventario."},
+ {q:"¿Por qué los estados del pedido son constantes (Pedido.REGISTRADO) y no strings escritos a mano en cada uso?",
+  o:["Evita strings mágicos: un typo en un string suelto compila y falla en silencio; con la constante, el typo no compila","Porque Java prohíbe comparar strings","Para ahorrar memoria","Porque los observadores solo aceptan constantes"],
+  c:0, e:"Las constantes públicas (líneas 13–17 de Pedido) dan UN punto de definición que comparten modelo, interfaz y observadores. Es la defensa clásica contra errores de tipeo silenciosos."},
+ {q:"🪤 ¿Por qué la línea 'class Pedido extends PedidoAbstracto implements Alimento' es especial?",
+  o:["Es el cruce de dos patrones: hereda la abstracción del Bridge e implementa el Component del Composite","Es un error de diseño que hay que ocultar","Java la genera automáticamente","Demuestra herencia múltiple de clases"],
+  c:0, e:"Pedido juega en dos patrones a la vez: por extends recibe el puente metodoPago (Bridge); por implements puede tratarse como un alimento más y contener alimentos (Composite)."}
+];
+
+let qOrder = [], qIdx = 0, qScore = 0;
+
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]];} return r; }
+
+function startQuiz(){
+  qOrder = shuffle(QUESTIONS.map((_,i)=>i));
+  qIdx = 0; qScore = 0;
+  document.getElementById('quiz-start').style.display='none';
+  document.getElementById('quiz-end').style.display='none';
+  document.getElementById('quiz-game').style.display='block';
+  showQ();
+}
+
+function showQ(){
+  const q = QUESTIONS[qOrder[qIdx]];
+  document.getElementById('q-bar').style.width = (qIdx/qOrder.length*100)+'%';
+  document.getElementById('q-num').textContent = 'Pregunta '+(qIdx+1)+' de '+qOrder.length+'  ·  Aciertos: '+qScore;
+  document.getElementById('q-text').textContent = q.q;
+  const box = document.getElementById('q-opts');
+  box.innerHTML='';
+  const order = shuffle(q.o.map((_,i)=>i));
+  order.forEach(i=>{
+    const b=document.createElement('button');
+    b.className='q-opt'; b.textContent=q.o[i];
+    b.onclick=()=>answer(b,i===q.c,q);
+    box.appendChild(b);
+  });
+  const ex=document.getElementById('q-explain');
+  ex.classList.remove('show'); ex.innerHTML='';
+  document.getElementById('q-next').classList.remove('show');
+}
+
+function answer(btn, ok, q){
+  document.querySelectorAll('.q-opt').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===q.o[q.c]) b.classList.add('correct');
+  });
+  if(!ok) btn.classList.add('wrong'); else qScore++;
+  const ex=document.getElementById('q-explain');
+  ex.innerHTML='<b>'+(ok?'✅ Correcto. ':'❌ Incorrecto. ')+'</b>'+q.e;
+  ex.classList.add('show');
+  document.getElementById('q-num').textContent = 'Pregunta '+(qIdx+1)+' de '+qOrder.length+'  ·  Aciertos: '+qScore;
+  document.getElementById('q-next').classList.add('show');
+}
+
+function nextQ(){
+  qIdx++;
+  if(qIdx>=qOrder.length){ endQuiz(); return; }
+  showQ();
+}
+
+function endQuiz(){
+  document.getElementById('quiz-game').style.display='none';
+  const pct = Math.round(qScore/qOrder.length*100);
+  let msg;
+  if(pct===100) msg='🏆 Perfecto. El profe no tiene cómo agarrarte.';
+  else if(pct>=85) msg='🔥 Casi listo: repasa las que fallaste y a dormir tranquilo.';
+  else if(pct>=60) msg='📚 Vas bien, pero vuelve a las pestañas de los patrones que fallaste.';
+  else msg='⚠️ Todavía verde: relee el Mapa y las Trampas antes de reintentar.';
+  const end=document.getElementById('quiz-end');
+  end.style.display='block';
+  end.innerHTML='<div class="big">'+qScore+'/'+qOrder.length+'</div><p style="margin:8px 0 4px;">'+pct+'% de aciertos</p><p style="color:var(--muted); margin-bottom:20px;">'+msg+'</p><button class="btn" onclick="startQuiz()">Reintentar</button>';
+}
+</script>
+</body>
+</html>
