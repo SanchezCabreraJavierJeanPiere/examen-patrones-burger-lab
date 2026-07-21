@@ -92,6 +92,23 @@
   .flow span{background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:.8rem;}
   .flow span b{color:var(--accent);}
   .flow em{color:var(--muted);}
+
+  /* GUIÓN DE EXPOSICIÓN */
+  .guion{background:linear-gradient(135deg,#241a30,#17121f); border:1px solid #6f42c155; border-left:4px solid var(--purple); border-radius:8px; padding:14px 16px; margin:14px 0 8px;}
+  .guion-head{font-weight:800; color:var(--purple); font-size:1rem; margin-bottom:4px;}
+  .guion-head span{font-weight:500; color:var(--muted); font-size:.8rem;}
+  .guion-sub{color:#c9d1d9; font-size:.86rem; margin-bottom:8px;}
+  ol.guion-steps{list-style:none; counter-reset:paso; padding:0; margin:0;}
+  ol.guion-steps>li{counter-increment:paso; position:relative; padding:11px 0 11px 40px; border-top:1px dashed var(--border); font-size:.9rem;}
+  ol.guion-steps>li:first-child{border-top:none;}
+  ol.guion-steps>li::before{content:counter(paso); position:absolute; left:0; top:11px; width:26px; height:26px; background:var(--purple); color:#160e22; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.82rem;}
+  .g-app{color:var(--accent2); font-weight:700;}
+  .g-dice{color:var(--green); font-weight:700;}
+  .g-code{color:var(--muted); font-weight:700;}
+  .guion .frase{color:#f0e9ff; font-style:italic;}
+  .guion-cierre{margin-top:12px; padding:10px 12px; background:#251a37; border:1px solid #6f42c144; border-radius:6px; font-size:.9rem; color:#e6edf3;}
+  .guion-cierre b{color:var(--purple);}
+  .guion code, .guion-cierre code{background:var(--code-bg); padding:1px 6px; border-radius:4px; font-size:.82em; color:var(--yellow); font-family:"SF Mono",Menlo,Consolas,monospace;}
 </style>
 </head>
 <body>
@@ -145,7 +162,7 @@
       <tr><td><code>src/DATOS/</code></td><td>Estructuras de datos (pilas) — sin patrones GoF</td></tr>
     </table>
 
-    <h3>Cómo cooperan en una corrida (<code>MainSistemaHamburgueseria.java</code>)</h3>
+    <h3>Cómo cooperan en una corrida de la app (un pedido, de crear a entregar)</h3>
     <div class="flow">
       <span><b>1. Singleton</b><br><code>getInstancia()</code></span><em>→</em>
       <span><b>2. Observer</b><br><code>registrarPedido()</code> suscribe Cocina, Despacho, Pantalla</span><em>→</em>
@@ -167,27 +184,43 @@
     <span class="tipo creacional">Creacional · GoF</span>
     <p class="intent">Garantizar que una clase tenga UNA sola instancia y dar un punto de acceso global a ella.</p>
 
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>una sola instancia, un solo inventario para toda la app.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Abro Burger Lab.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Apenas arranca, la interfaz pide la única instancia del sistema; nadie hace <code>new</code>."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> <code>SistemaHamburgueseria.getInstancia()</code> (línea 57 de la app). Toda la UI comparte ESE objeto.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Señalo el panel <b>"Inventario central"</b> a la derecha: Pan 20, Carne 20, Queso 20…<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Ese inventario vive DENTRO de la única instancia. No hay copias."</span></li>
+        <li><span class="g-app">🖱️ En la app:</span> Creo un pedido (Mostrador), agrego una <b>Hamburguesa</b> y pulso <b>🍳 Preparar pedido</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Miren: Pan 20→19, Carne 20→19, Queso 20→19."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> el pedido descontó del inventario compartido.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Creo <b>otro</b> pedido y agrego otra hamburguesa; lo preparo.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"El stock sigue bajando desde 19, no vuelve a 20: es el MISMO inventario, la MISMA instancia. Si cada pedido creara su propio sistema, cada uno vería 20 y venderíamos stock fantasma."</span></li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre:</b> "Tres piezas hacen el Singleton: constructor privado, campo <code>static final</code> con la única instancia y <code>getInstancia()</code> como acceso. Por eso el inventario es uno solo para toda la app."</div>
+    </div>
+
     <h3>📍 Dónde está</h3>
     <table class="files">
       <tr><th>Archivo</th><th>Rol</th></tr>
-      <tr><td><code>proyecto_final/SistemaHamburgueseria.java</code></td><td class="rol">La clase Singleton (líneas 11–24: holder + constructor privado + getInstancia)</td></tr>
-      <tr><td><code>proyecto_final/MainSistemaHamburgueseria.java</code></td><td class="rol">Demostración: <code>sistema1 == sistema2</code> imprime <code>true</code> (líneas 11–17)</td></tr>
+      <tr><td><code>proyecto_final/SistemaHamburgueseria.java</code></td><td class="rol">La clase Singleton (líneas 9–20: instancia estática final + constructor privado + getInstancia)</td></tr>
+      <tr><td><code>proyecto_final/interfaz/AplicacionHamburgueseria.java</code></td><td class="rol">Uso real: la línea 57 obtiene la única instancia con <code>getInstancia()</code>; toda la UI comparte ese objeto y su inventario</td></tr>
     </table>
 
     <h3>🔑 El código que lo hace ser Singleton</h3>
-    <pre class="code"><span class="cfile">SistemaHamburgueseria.java (líneas 11–24)</span>// Holder idiom: la instancia se crea al solicitarla por primera vez.
-private static class ContenedorInstancia {
-    private static final SistemaHamburgueseria INSTANCIA = new SistemaHamburgueseria();
-}
+    <pre class="code"><span class="cfile">SistemaHamburgueseria.java (líneas 9–20)</span>// Unica instancia, creada por la propia clase al cargarse (inicializacion eager).
+private static final SistemaHamburgueseria instancia = new SistemaHamburgueseria();
 
-// Constructor privado: otras clases no pueden crear mas sistemas.
+// Constructor privado: ninguna otra clase puede hacer 'new' de otro sistema.
 private SistemaHamburgueseria() {
-    inventario = new Inventario();
+    inventario = new Inventario();   // el UNICO inventario nace aqui
 }
 
+// Unico punto de acceso global a la instancia.
 public static SistemaHamburgueseria getInstancia() {
-    // Siempre devuelve exactamente el mismo objeto.
-    return ContenedorInstancia.INSTANCIA;
+    return instancia;
 }</pre>
     <div class="why-box">Son <b>3 piezas juntas</b> las que forman el patrón: ① constructor <code>private</code> (nadie más puede hacer <code>new</code>), ② campo estático con la única instancia, ③ método público estático <code>getInstancia()</code> como único punto de acceso. Si falta cualquiera de las tres, ya no es Singleton.</div>
 
@@ -195,18 +228,18 @@ public static SistemaHamburgueseria getInstancia() {
     <p>El <code>Inventario</code> (stock de pan, carne, queso…) debe ser <b>uno solo</b> para toda la aplicación. Si cada pantalla o cada pedido creara su propio <code>SistemaHamburgueseria</code>, cada uno tendría su propio inventario y los descuentos de stock no se verían entre sí: venderíamos hamburguesas con stock fantasma.</p>
 
     <h3>⚔️ Por qué así y no de otra forma</h3>
-    <div class="vs"><div class="vs-head">¿Por qué "holder idiom" (truco del "sostenedor": una clase interna que guarda la instancia) y no el Singleton clásico con if?</div><div class="vs-body">El clásico hace <code>if (instancia == null) instancia = new ...</code> — ese <code>if</code> <b>no es thread-safe</b> ("seguro entre hilos"; un hilo es una tarea que corre en paralelo dentro del programa: dos hilos podrían entrar al if a la vez y crear dos instancias) y además el proyecto evita condicionales. El holder usa una <b>clase interna estática</b>: la JVM (máquina virtual de Java: el programa que ejecuta tu código) garantiza que una clase se inicializa una sola vez y de forma segura entre hilos, recién cuando alguien la usa por primera vez. Resultado: <b>lazy (perezoso: se crea solo al usarse) + thread-safe (seguro entre hilos) + sin synchronized (el bloqueo manual entre hilos, que hace lento cada acceso) + sin if</b>.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué inicialización <b>eager</b> (<code>static final</code>) y no el Singleton clásico con if?</div><div class="vs-body">El clásico hace <code>if (instancia == null) instancia = new ...</code> — ese <code>if</code> <b>no es thread-safe</b> ("seguro entre hilos"; un hilo es una tarea que corre en paralelo dentro del programa: dos hilos podrían entrar al if a la vez y crear dos instancias). Un campo <code>static final</code> lo evita: la JVM (máquina virtual de Java: el programa que ejecuta tu código) <b>inicializa la clase una sola vez y de forma segura entre hilos</b> al cargarla, antes de que cualquier hilo la use. Resultado: <b>thread-safe (seguro entre hilos) + sin synchronized (el bloqueo manual entre hilos, que hace lento cada acceso) + sin if</b>.</div></div>
     <div class="vs"><div class="vs-head">¿Por qué no una clase con métodos static y ya?</div><div class="vs-body">Una clase estática no puede implementar interfaces, no se puede pasar como parámetro, no se puede heredar y no permite inicialización perezosa controlada. El Singleton sigue siendo un <b>objeto</b>: aquí se pasa a otros métodos y mantiene estado (<code>inventario</code>).</div></div>
-    <div class="vs"><div class="vs-head">¿Por qué no eager (crear la instancia al cargar la clase)?</div><div class="vs-body">Funcionaría, pero el holder ya da lo mismo y mejor: la instancia se crea <b>solo si alguien la pide</b>. Con eager ("ansioso": crear de inmediato), cargas el inventario aunque nunca se use.</div></div>
+    <div class="vs"><div class="vs-head">¿Por qué no lazy (perezoso, ej. "holder idiom")?</div><div class="vs-body">Lazy retrasa la creación hasta el primer <code>getInstancia()</code> — útil solo si el objeto es caro y <b>podría no usarse</b>. Aquí el sistema y su inventario se usan desde la primera pantalla, así que <b>eager es más simple e igual de thread-safe</b>. Trade-off honesto: con eager la instancia se crea al cargar la clase aunque, en teoría, no se usara.</div></div>
 
     <h3>🎓 Preguntas rebuscadas</h3>
-    <details class="qa"><summary>¿Qué pasa si dos hilos llaman a getInstancia() exactamente al mismo tiempo?</summary><div class="resp">Nada malo: la <b>JVM garantiza que la inicialización de la clase <code>ContenedorInstancia</code> ocurre una sola vez</b> (lo controla el class loader: la pieza de la JVM que carga las clases en memoria). Ambos hilos reciben la misma <code>INSTANCIA</code>. Por eso no necesitamos <code>synchronized</code> ni double-checked locking (la técnica clásica y enredada de verificar null dos veces con bloqueo).</div></details>
-    <details class="qa"><summary>¿Por qué la clase interna es static? ¿Qué pasaría si no lo fuera?</summary><div class="resp">Si no fuera <code>static</code>, necesitaría una instancia de <code>SistemaHamburgueseria</code> para existir — círculo imposible, no compilaría en este uso. Además, siendo estática, <b>solo se carga cuando <code>getInstancia()</code> la toca por primera vez</b>: eso es lo que hace lazy (perezoso: crear el objeto solo cuando de verdad se necesita) al patrón.</div></details>
-    <details class="qa"><summary>Señale la línea exacta que impide crear dos sistemas.</summary><div class="resp">Línea 17: <code>private SistemaHamburgueseria()</code>. Al ser privado el constructor, <code>new SistemaHamburgueseria()</code> desde otra clase <b>no compila</b>.</div></details>
-    <details class="qa"><summary>¿Cómo demuestran en código que es una sola instancia?</summary><div class="resp">En <code>MainSistemaHamburgueseria</code> líneas 11–17: se piden dos referencias y se compara con <code>==</code> (identidad, no equals): <code>sistema1 == sistema2</code> imprime <b>true</b> → son el mismo objeto en memoria.</div></details>
+    <details class="qa"><summary>¿Qué pasa si dos hilos llaman a getInstancia() exactamente al mismo tiempo?</summary><div class="resp">Nada malo: el campo es <code>static final</code>, así que la <b>JVM inicializa la clase una sola vez</b> (lo controla el class loader: la pieza de la JVM que carga las clases en memoria) <b>antes</b> de que ningún hilo pueda acceder a <code>instancia</code>. Ambos hilos reciben el mismo objeto. Por eso no necesitamos <code>synchronized</code> ni double-checked locking (la técnica clásica y enredada de verificar null dos veces con bloqueo).</div></details>
+    <details class="qa"><summary>¿Esta implementación es lazy o eager? ¿Importa?</summary><div class="resp">Es <b>eager</b>: la instancia se crea cuando se carga la clase <code>SistemaHamburgueseria</code> (por el <code>static final</code>), no en el primer <code>getInstancia()</code>. Importa poco aquí porque el sistema se usa desde la primera pantalla. Si fuera un objeto caro que <b>podría no usarse nunca</b>, convendría lazy (ej. "holder idiom": una clase interna estática que se carga recién al pedirla).</div></details>
+    <details class="qa"><summary>Señale la línea exacta que impide crear dos sistemas.</summary><div class="resp">Línea 14: <code>private SistemaHamburgueseria()</code>. Al ser privado el constructor, <code>new SistemaHamburgueseria()</code> desde otra clase <b>no compila</b>.</div></details>
+    <details class="qa"><summary>¿Cómo demuestran que es una sola instancia?</summary><div class="resp">En la app: <code>AplicacionHamburgueseria</code> obtiene el sistema UNA vez con <code>SistemaHamburgueseria.getInstancia()</code> (línea 57) y toda la UI comparte ese objeto. La <b>prueba viva es el panel "Inventario central"</b>: lo que un pedido descuenta, el siguiente lo sigue viendo descontado — porque hay un solo inventario dentro de la única instancia. (En código puro se comprobaría con <code>getInstancia() == getInstancia()</code> → <code>true</code>.)</div></details>
     <details class="qa"><summary>¿Qué crítica se le hace al Singleton y cómo la defienden?</summary><div class="resp">Se le critica ser un "global encubierto" que dificulta los tests. Defensa: aquí el alcance es pequeño y la alternativa (pasar el inventario por todos los constructores de la UI) complicaría más; además el acceso queda <b>centralizado y controlado</b> en una sola clase coordinadora, no regado por el código.</div></details>
 
-    <div class="elevator"><b>Respuesta de 20 segundos:</b> "SistemaHamburgueseria es Singleton con holder idiom (una clase interna estática 'sostiene' la instancia): constructor privado, clase interna estática con la única instancia y getInstancia() como acceso. Lo usamos porque el inventario debe ser uno solo para toda la app, y el holder nos da carga perezosa (lazy) y seguridad entre hilos (thread-safe) sin bloqueos (synchronized) y sin if."</div>
+    <div class="elevator"><b>Respuesta de 20 segundos:</b> "SistemaHamburgueseria es Singleton con inicialización eager: un campo <code>static final</code> guarda la única instancia, el constructor es privado y getInstancia() es el único acceso. Lo usamos porque el inventario debe ser uno solo para toda la app; el static final nos da seguridad entre hilos (thread-safe) sin bloqueos (synchronized) y sin if."</div>
   </div>
 </section>
 
@@ -216,6 +249,20 @@ public static SistemaHamburgueseria getInstancia() {
     <h2>Factory Method</h2>
     <span class="tipo creacional">Creacional · GoF</span>
     <p class="intent">Definir una interfaz para crear objetos, dejando que cada fábrica concreta decida qué clase instanciar.</p>
+
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>cada botón "＋ Agregar" crea su producto con una fábrica; el cliente nunca hace <code>new</code>.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Creo un pedido (escribo el cliente y pulso <b>🏪 Mostrador</b>).</li>
+        <li><span class="g-app">🖱️ En la app:</span> En "Agregar productos" pulso <b>＋ Agregar</b> en <b>Hamburguesa</b>. Aparece "Hamburguesa – S/18.00" en el resumen.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Este botón NO hace <code>new Hamburguesa()</code>. Llama a la fábrica."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> <code>new FactoryHamburguesa().crearAlimento(inventario)</code> devuelve un <code>Alimento</code> — la app recibe la interfaz, no sabe que por dentro es una Hamburguesa.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Agrego también <b>Papas</b>, <b>Refresco</b> y <b>Helado</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Cada botón usa SU fábrica: FactoryPapasFritas, FactoryRefresco, FactoryHelado. No hay ni un <code>if</code> ni un <code>switch</code>: el botón que presiono ES la decisión."</span></li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre:</b> "El único <code>new Hamburguesa</code> del sistema vive en <code>FactoryHamburguesa.crearAlimento()</code>. Agregar una Ensalada mañana = 2 clases nuevas (Ensalada + FactoryEnsalada) y cero cambios en la app: eso es Open/Closed."</div>
+    </div>
 
     <h3>📍 Dónde está</h3>
     <table class="files">
@@ -252,7 +299,7 @@ public Alimento crearAlimento(Inventario inventario) {
     <h3>🎓 Preguntas rebuscadas</h3>
     <details class="qa"><summary>¿Por qué crearAlimento() devuelve Alimento y no Hamburguesa?</summary><div class="resp"><b>Programar contra la interfaz, no la implementación</b> (principio de inversión de dependencias, DIP: depender de contratos abstractos y no de clases concretas). Si devolviera <code>Hamburguesa</code>, el cliente quedaría acoplado a la clase concreta y el patrón perdería su gracia: no podrías tratar todos los productos igual ni agregarlos al pedido de forma uniforme.</div></details>
     <details class="qa"><summary>¿Por qué la fábrica recibe el Inventario como parámetro?</summary><div class="resp">Es <b>inyección de dependencia</b> (entregarle a un objeto lo que necesita desde afuera, en vez de que él lo busque): el producto necesita el inventario para descontar ingredientes en <code>comprobarIngredientes()</code>. La fábrica se lo entrega en el constructor (<code>new Hamburguesa(inventario)</code>), así el producto nace listo y no tiene que buscar el inventario por su cuenta.</div></details>
-    <details class="qa"><summary>Entonces… ¿dónde se decide QUÉ fábrica usar? ¿No hay un if escondido?</summary><div class="resp">La decisión la toma <b>el usuario al hacer clic</b>: cada botón de la interfaz (o cada línea del main) instancia directamente su fábrica concreta (<code>new FactoryHamburguesa()</code>). No hay if/switch: la selección física del botón reemplaza al condicional.</div></details>
+    <details class="qa"><summary>Entonces… ¿dónde se decide QUÉ fábrica usar? ¿No hay un if escondido?</summary><div class="resp">La decisión la toma <b>el usuario al hacer clic</b>: cada botón de la interfaz instancia directamente su fábrica concreta (<code>new FactoryHamburguesa()</code>, <code>new FactoryHelado()</code>…). No hay if/switch: la selección física del botón reemplaza al condicional.</div></details>
     <details class="qa"><summary>¿Cuántos 'new Hamburguesa' hay en el sistema y por qué importa?</summary><div class="resp"><b>Uno solo</b>, dentro de <code>FactoryHamburguesa.crearAlimento()</code>. Importa porque el punto de creación está centralizado: si mañana la hamburguesa necesita otro parámetro, se cambia en UN lugar.</div></details>
     <details class="qa"><summary>¿Qué principio SOLID (sigla de los 5 principios del buen diseño orientado a objetos) demuestra este patrón aquí?</summary><div class="resp"><b>Open/Closed</b>: abierto a extensión (nuevas fábricas y productos), cerrado a modificación (el código cliente no se toca). También <b>DIP</b> (inversión de dependencias): el cliente depende de las abstracciones <code>FactoryAlimento</code> y <code>Alimento</code>, no de clases concretas.</div></details>
 
@@ -266,6 +313,20 @@ public Alimento crearAlimento(Inventario inventario) {
     <h2>Template Method</h2>
     <span class="tipo comportamiento">Comportamiento · GoF</span>
     <p class="intent">Definir en una clase base el esqueleto de un algoritmo, dejando pasos específicos a las subclases sin que puedan cambiar el orden.</p>
+
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>la fila PEDIDO→VERIFICAR→PREPARAR→COCINAR→EMPACAR→LISTO es el esqueleto del método plantilla.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Con un pedido que tiene una <b>Hamburguesa</b>, pulso <b>🍳 Preparar pedido</b> y señalo cómo se encienden en orden los pasos: <b>PEDIDO → VERIFICAR → PREPARAR → COCINAR → EMPACAR → LISTO</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Esa secuencia visible ES el método plantilla <code>preparar()</code> de AlimentoAbstracto. El orden NUNCA cambia."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> <code>preparar()</code> llama en orden fijo a comprobar → preparar → cocinar → empacar → entregar.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Muestro "Actividad del pedido": "Se cocina la carne de la hamburguesa".<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"La Hamburguesa cocina carne. Si fuera un Refresco, el paso 'cocinar' diría 'no necesita cocinarse' — el paso existe y respeta su lugar, solo cambia su contenido."</span></li>
+        <li><span class="g-dice">🗣️ Digo:</span> <span class="frase">"Los tres primeros pasos son <code>abstract</code>: cada producto los rellena a su manera. Los dos últimos —empacar y entregar— son comunes y se reutilizan sin repetir código."</span></li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre:</b> "Un solo esqueleto, cuatro productos distintos. Elegimos Template Method y no Strategy porque el orden es fijo y solo varían los pasos, no el algoritmo completo."</div>
+    </div>
 
     <h3>📍 Dónde está</h3>
     <table class="files">
@@ -318,6 +379,20 @@ public void entregar() { System.out.println("Se entrega " + nombre); }</pre>
     <h2>Composite</h2>
     <span class="tipo estructural">Estructural · GoF</span>
     <p class="intent">Componer objetos en estructuras árbol y tratar igual a un objeto individual que a un grupo completo.</p>
+
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>un pedido con varios productos se trata como UN solo alimento.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Creo un pedido y agrego <b>varios</b> productos: Hamburguesa + Papas + Refresco. Señalo el resumen: 3 productos y un Total sumado.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Pulso <b>🍳 Preparar pedido</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Hice UNA sola llamada: <code>pedido.preparar()</code>. El Pedido es un Composite: implementa la misma interfaz <code>Alimento</code> que sus hijos y recorre su <code>List&lt;Alimento&gt;</code> preparando cada uno."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> un <code>for</code> llama <code>alimento.preparar()</code> de cada hijo — el sistema no sabe cuántos hay ni de qué tipo.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Señalo el <b>Total</b> del resumen.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"<code>agregarAlimento()</code> sumó el <code>getPrecio()</code> de cada hijo por la interfaz. Trato al pedido completo igual que a un solo producto."</span></li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre:</b> "Component = <code>Alimento</code>, Composite = <code>Pedido</code>, Hojas = los productos. Y como el Pedido ES un Alimento, un pedido podría contener OTRO pedido: estructura recursiva."</div>
+    </div>
 
     <h3>📍 Dónde está</h3>
     <table class="files">
@@ -377,6 +452,20 @@ public void entregar() { System.out.println("Se entrega " + nombre); }</pre>
     <h2>Observer</h2>
     <span class="tipo comportamiento">Comportamiento · GoF</span>
     <p class="intent">Definir una dependencia uno-a-muchos: cuando un objeto cambia de estado, todos sus suscriptores son notificados automáticamente.</p>
+
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>cada cambio de estado se difunde solo a Cocina, Despacho y Pantalla del cliente.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Creo un pedido (Mostrador) y abro los monitores del header: <b>Cocina</b>, <b>Despacho</b>, <b>Clientes</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Al registrar el pedido, el sistema ya suscribió a Cocina, Despacho y PantallaCliente — antes del primer estado, para no perderse ninguno."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> <code>configurarPedido()</code> hace tres <code>suscribir()</code> y luego <code>cambiarEstado(REGISTRADO)</code>.</li>
+        <li><span class="g-app">🖱️ En la app:</span> Agrego una hamburguesa y pulso <b>🍳 Preparar pedido</b>. Señalo cómo cambian a la vez el estado (EN_PREPARACION → LISTO), los paneles de área y el log "Actividad del pedido".<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Cada <code>cambiarEstado()</code> dispara <code>notificarObservadores()</code>: todas las áreas se enteran solas, sin que el Pedido conozca sus clases."</span></li>
+        <li><span class="g-app">🖱️ En la app:</span> Proceso el pago y pulso <b>✅ Entregar pedido</b>: el estado pasa a ENTREGADO y todos reaccionan otra vez (DESPACHO · ENTREGADO).</li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre:</b> "Uno-a-muchos, en un solo sentido: el pedido emite, todos escuchan. Agregar un área nueva (ej. Contabilidad) = una clase + un <code>suscribir()</code>, sin tocar el Pedido."</div>
+    </div>
 
     <h3>📍 Dónde está</h3>
     <table class="files">
@@ -439,6 +528,23 @@ public void cambiarEstado(String estado) {
     <span class="tipo estructural">Estructural · GoF</span>
     <p class="intent">Desacoplar una abstracción de su implementación para que ambas jerarquías evolucionen de forma independiente.</p>
 
+    <div class="guion">
+      <div class="guion-head">🎤 Guión de exposición <span>— ejecuta la app mientras hablas</span></div>
+      <p class="guion-sub">Tema: <b>tipo de pedido (QUÉ monto) × método de pago (CÓMO cobrar), combinados en tiempo de ejecución.</b></p>
+      <ol class="guion-steps">
+        <li><span class="g-app">🖱️ En la app:</span> Creo un pedido <b>🛵 Delivery</b> y agrego una Hamburguesa (S/18). Señalo el Total: <b>S/23</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"El lado 'abstracción' decide QUÉ monto: <code>PedidoDelivery.getPrecio()</code> suma S/5 de envío; el de Mostrador no."</span></li>
+        <li><span class="g-app">🖱️ En la app:</span> Preparo el pedido y en "Cobro y entrega" elijo <b>Yape</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Ese clic hace <code>setMetodoPago(new PagoYape(...))</code>: cambio la implementación EN TIEMPO DE EJECUCIÓN."</span></li>
+        <li><span class="g-app">🖱️ En la app:</span> Pulso <b>💳 Procesar pago</b>.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"Aquí se cruza el puente."</span><br>
+          <span class="g-code">⚙️ Por dentro:</span> <code>procesarPago()</code> hace <code>metodoPago.pagar(getPrecio())</code> — el pedido calculó el total (23), Yape decide CÓMO cobrarlo.</li>
+        <li><span class="g-app">🖱️ En la app:</span> (opcional) Repito eligiendo <b>Tarjeta</b> o <b>Efectivo</b> sobre el mismo pedido.<br>
+          <span class="g-dice">🗣️ Digo:</span> <span class="frase">"La MISMA abstracción combina con cualquier pago. 2 tipos × 3 pagos: con Bridge son 2+3=5 clases, no 6."</span></li>
+      </ol>
+      <div class="guion-cierre">🎯 <b>Cierre (la asesina):</b> "Parece Strategy, pero hay DOS jerarquías que crecen por separado — pedidos y pagos. El campo <code>MetodoPago metodoPago</code> es el puente. Eso es Bridge, no Strategy."</div>
+    </div>
+
     <h3>📍 Dónde está</h3>
     <table class="files">
       <tr><th>Archivo</th><th>Rol en el patrón</th></tr>
@@ -484,7 +590,7 @@ public double getPrecio() {
     <h3>🎓 Preguntas rebuscadas</h3>
     <details class="qa"><summary>Señale la línea exacta donde "cruza el puente".</summary><div class="resp"><code>PedidoMostrador.java</code> línea 20 (y PedidoDelivery línea 29): <code>metodoPago.pagar(getPrecio())</code>. Ahí la abstracción (pedido) delega el trabajo a la implementación (pago) a través de la interfaz.</div></details>
     <details class="qa"><summary>¿Qué aporta cada lado del puente? Demuestre que ambos varían.</summary><div class="resp"><b>Lado abstracción:</b> <code>PedidoDelivery.getPrecio()</code> suma <code>costoEnvio</code>; PedidoMostrador no. <b>Lado implementación:</b> PagoTarjeta imprime el número de tarjeta, PagoYape el celular, PagoEfectivo solo el monto. Dos ejes de variación reales e independientes: la definición de Bridge.</div></details>
-    <details class="qa"><summary>¿Dónde se cambia la implementación en tiempo de ejecución?</summary><div class="resp">En <code>PedidoAbstracto.setMetodoPago()</code> (líneas 28–31). En el main, línea 42: <code>pedido.setMetodoPago(new PagoTarjeta("123456789"))</code>. En la app JavaFX, al elegir el método de pago en pantalla.</div></details>
+    <details class="qa"><summary>¿Dónde se cambia la implementación en tiempo de ejecución?</summary><div class="resp">En <code>PedidoAbstracto.setMetodoPago()</code> (líneas 28–31). En la app JavaFX ocurre al elegir el método de pago en pantalla: ese clic hace <code>vista.pedido.setMetodoPago(metodoPago)</code> (ej. <code>new PagoYape(...)</code>), sustituyendo la implementación con el programa ya corriendo.</div></details>
     <details class="qa trampa"><summary>¿Por qué PedidoAbstracto es clase abstracta y MetodoPago es interfaz?</summary><div class="resp">La abstracción <b>comparte estado y código</b> entre sus hijas (el campo <code>metodoPago</code>, <code>monto</code>, los setters) → clase abstracta. El implementor solo define un <b>contrato de comportamiento</b> sin estado común (<code>pagar(monto)</code>) → interfaz. Es la forma canónica del Bridge en Java.</div></details>
     <details class="qa"><summary>¿Hay otro Bridge en el proyecto?</summary><div class="resp">Sí, el demo de clase en <code>src/patrones/bridge/</code>: <code>FiguraAbstracta</code> (abstracción) guarda un <code>Pincel</code> (implementor). Figuras: Círculo, Cuadrado, Estrella, Pastel, Fuego, Vela; pinceles: <code>PincelSwingRojo/Azul/Amarillo/Rosa</code>. Cualquier figura se dibuja con cualquier color: n+m clases en vez de n×m.</div></details>
 
@@ -535,7 +641,7 @@ public double getPrecio() {
 
     <div class="vs"><div class="vs-head">Inyección de dependencias (manual)</div><div class="vs-body">Los productos no buscan el inventario: lo <b>reciben</b> por constructor (<code>new Hamburguesa(inventario)</code>, entregado por la fábrica). La dependencia es explícita y visible en la firma.</div></div>
 
-    <div class="vs"><div class="vs-head">Separación modelo ↔ vista</div><div class="vs-body">El mismo modelo sirve a dos vistas sin cambiar una línea: el main de consola (<code>MainSistemaHamburgueseria</code>) y la app JavaFX (<code>interfaz/AplicacionHamburgueseria</code>). Prueba de que la lógica no está mezclada con la interfaz.</div></div>
+    <div class="vs"><div class="vs-head">Separación modelo ↔ vista</div><div class="vs-body">El modelo <b>no depende de la interfaz</b>: las clases del dominio (<code>Pedido</code>, <code>Hamburguesa</code>, <code>Inventario</code>…) usan solo <code>System.out</code> y <b>no importan JavaFX</b>. Por eso el mismo modelo podría servir a una vista de consola o a la app JavaFX (<code>interfaz/AplicacionHamburgueseria</code>) sin cambiar una línea: la lógica no está mezclada con la interfaz.</div></div>
 
     <h3>🎓 Preguntas rebuscadas</h3>
     <details class="qa"><summary>¿Qué significa exactamente "una sola razón para cambiar"?</summary><div class="resp">Que solo UN tipo de requisito puede obligarte a editar esa clase. <code>PagoYape</code> solo cambia si cambia cómo se cobra por Yape; <code>Inventario</code> solo cambia si cambia la gestión de stock. Si una clase cambiara por dos motivos distintos (cobros Y stock), tendría dos responsabilidades mezcladas y cada cambio arriesgaría romper al otro.</div></details>
@@ -638,12 +744,12 @@ const QUESTIONS = [
  {q:"¿Qué tres elementos juntos hacen que SistemaHamburgueseria sea Singleton?",
   o:["Constructor privado + instancia estática única + getInstancia() público","Solo el método getInstancia()","Ser la única clase del paquete con métodos static","Tener un inventario privado"],
   c:0, e:"Faltando cualquiera de las tres piezas deja de ser Singleton: sin constructor privado cualquiera hace new; sin el campo estático no hay instancia única; sin getInstancia() no hay acceso."},
- {q:"¿Por qué el proyecto usa el 'holder idiom' (la clase interna que sostiene la instancia) en vez del Singleton clásico con if (instancia == null)?",
-  o:["Es lazy (se crea solo al usarse) y thread-safe (seguro entre hilos) sin necesitar synchronized, y evita el condicional","Porque el if está prohibido en Java moderno","Para poder tener varias instancias si hace falta","Porque consume menos memoria RAM"],
-  c:0, e:"La JVM (máquina virtual de Java) garantiza que la clase interna ContenedorInstancia se inicializa una sola vez y de forma segura entre hilos, recién al primer uso. El if clásico no es thread-safe."},
- {q:"En MainSistemaHamburgueseria, ¿cómo se demuestra el Singleton?",
-  o:["Comparando dos referencias con == y obteniendo true","Llamando dos veces al constructor","Con un assert de JUnit","Imprimiendo el hashCode del inventario"],
-  c:0, e:"sistema1 == sistema2 compara identidad (mismo objeto en memoria), no igualdad lógica. Imprime true: ambas variables apuntan a la única instancia."},
+ {q:"¿Por qué el proyecto usa un campo static final (inicialización eager) en vez del Singleton clásico con if (instancia == null)?",
+  o:["El static final es thread-safe (seguro entre hilos) porque la JVM inicializa la clase una sola vez, sin necesitar synchronized ni condicional","Porque el if está prohibido en Java moderno","Para poder tener varias instancias si hace falta","Porque consume menos memoria RAM"],
+  c:0, e:"La JVM (máquina virtual de Java) inicializa la clase una sola vez y de forma segura entre hilos al cargarla, antes de que cualquier hilo acceda. El if clásico (instancia == null) NO es thread-safe. Trade-off: es eager (se crea al cargar la clase), aceptable porque el sistema se usa siempre."},
+ {q:"¿Cómo se evidencia en la app que SistemaHamburgueseria es una sola instancia?",
+  o:["Toda la UI la obtiene con getInstancia() y comparte un solo inventario: lo que un pedido descuenta, el siguiente lo sigue viendo descontado","Cada pantalla crea su propio sistema con new","Con un assert de JUnit","Imprimiendo el hashCode del inventario"],
+  c:0, e:"La app llama getInstancia() una sola vez (línea 57) y todas las pantallas comparten ese objeto. El panel 'Inventario central' es la prueba viva: hay un único stock porque hay una única instancia. En código puro sería getInstancia() == getInstancia() → true."},
  {q:"¿Cuál es el 'método fábrica' del Factory Method del proyecto?",
   o:["crearAlimento(Inventario) en FactoryAlimento","preparar() en AlimentoAbstracto","registrarPedido() en SistemaHamburgueseria","agregarAlimento() en Pedido"],
   c:0, e:"crearAlimento() es el factory method: cada fábrica concreta lo implementa devolviendo la interfaz Alimento pero instanciando su clase concreta por dentro."},
@@ -654,7 +760,7 @@ const QUESTIONS = [
   o:["Porque no hay familias de productos relacionados: cada fábrica crea un solo producto","Porque Abstract Factory es obsoleto","Porque Abstract Factory requiere frameworks","Porque son exactamente lo mismo"],
   c:0, e:"Abstract Factory crea familias coherentes de varios productos (combo italiano vs combo peruano). Aquí cada fábrica produce UN alimento independiente: eso es Factory Method."},
  {q:"¿Dónde se decide QUÉ fábrica concreta usar, si no hay ningún if/switch?",
-  o:["El cliente (botón de la UI o línea del main) instancia directamente la fábrica que corresponde","En un switch oculto dentro de FactoryAlimento","La JVM lo decide por reflexión","En un archivo de configuración"],
+  o:["El cliente (el botón de la UI que se presiona) instancia directamente la fábrica que corresponde","En un switch oculto dentro de FactoryAlimento","La JVM lo decide por reflexión","En un archivo de configuración"],
   c:0, e:"La selección física del botón reemplaza al condicional: cada botón hace new FactoryHamburguesa(), new FactoryHelado(), etc. Polimorfismo puro, cero if."},
  {q:"El método plantilla del Template Method es…",
   o:["AlimentoAbstracto.preparar(): fija el orden comprobar→preparar→cocinar→empacar→entregar","Hamburguesa.cocinar()","Pedido.preparar()","AlimentoAbstracto.empacar()"],
